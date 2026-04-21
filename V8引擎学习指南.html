@@ -1,0 +1,2699 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>V8 JavaScript 引擎深度学习指南</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.8;
+            color: #333;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        .sidebar {
+            width: 300px;
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+        }
+        
+        .sidebar h2 {
+            font-size: 18px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #34495e;
+        }
+        
+        .sidebar ul {
+            list-style: none;
+        }
+        
+        .sidebar ul li {
+            margin-bottom: 5px;
+        }
+        
+        .sidebar ul li a {
+            color: #ecf0f1;
+            text-decoration: none;
+            display: block;
+            padding: 6px 10px;
+            border-radius: 4px;
+            transition: background-color 0.2s ease;
+            font-size: 14px;
+        }
+        
+        .sidebar ul li a:hover {
+            background-color: #34495e;
+        }
+        
+        .sidebar ul ul {
+            margin-left: 15px;
+            margin-top: 3px;
+        }
+        
+        .sidebar ul ul li a {
+            font-size: 13px;
+            padding: 4px 10px;
+            color: #bdc3c7;
+        }
+        
+        .main-content {
+            margin-left: 300px;
+            padding: 40px;
+            flex: 1;
+            background-color: white;
+            min-height: 100vh;
+            max-width: 900px;
+        }
+        
+        .header {
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .header h1 {
+            font-size: 32px;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 16px;
+            color: #7f8c8d;
+        }
+        
+        h2 {
+            font-size: 26px;
+            color: #2c3e50;
+            margin-top: 50px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3498db;
+        }
+        
+        h3 {
+            font-size: 20px;
+            color: #34495e;
+            margin-top: 35px;
+            margin-bottom: 15px;
+        }
+        
+        h4 {
+            font-size: 17px;
+            color: #555;
+            margin-top: 25px;
+            margin-bottom: 10px;
+        }
+        
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+        
+        code {
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            background-color: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.9em;
+            color: #c0392b;
+        }
+        
+        pre {
+            background-color: #f8f8f8;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin-bottom: 20px;
+            border-left: 4px solid #3498db;
+        }
+        
+        pre code {
+            background-color: transparent;
+            padding: 0;
+            color: #333;
+        }
+        
+        ul, ol {
+            margin-left: 25px;
+            margin-bottom: 15px;
+        }
+        
+        li {
+            margin-bottom: 8px;
+        }
+        
+        .card {
+            background-color: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .card h4 {
+            color: #3498db;
+            margin-top: 0;
+            margin-bottom: 12px;
+        }
+        
+        .tip {
+            background-color: #e8f6f3;
+            border-left: 4px solid #1abc9c;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        
+        .warning {
+            background-color: #fef9e7;
+            border-left: 4px solid #f1c40f;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        
+        .error {
+            background-color: #fdedec;
+            border-left: 4px solid #e74c3c;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        
+        .summary {
+            background-color: #ebf5fb;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin: 25px 0;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        th {
+            background-color: #f2f2f2;
+            font-weight: 600;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        
+        a:hover {
+            text-decoration: underline;
+        }
+        
+        blockquote {
+            background-color: #f8f9fa;
+            border-left: 4px solid #6c757d;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            font-style: italic;
+        }
+        
+        hr {
+            border: none;
+            border-top: 1px solid #e0e0e0;
+            margin: 40px 0;
+        }
+        
+        .ascii-art {
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            background-color: #f8f8f8;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin-bottom: 20px;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                z-index: 1000;
+            }
+            
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+                padding: 20px;
+            }
+            
+            .menu-toggle {
+                display: block;
+            }
+        }
+        
+        .menu-toggle {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1001;
+            background-color: #2c3e50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <button class="menu-toggle" onclick="toggleSidebar()">&#9776; 菜单</button>
+    
+    <div class="container">
+        <div class="sidebar" id="sidebar">
+            <h2>V8 引擎学习指南</h2>
+            <ul>
+                <li><a href="#preface">前置知识</a></li>
+                <li><a href="#overview">V8 引擎概述</a></li>
+                <li><a href="#architecture">源代码结构与架构</a>
+                    <ul>
+                        <li><a href="#dir-structure">目录结构</a></li>
+                        <li><a href="#core-modules">核心模块</a></li>
+                        <li><a href="#init-flow">初始化流程</a></li>
+                    </ul>
+                </li>
+                <li><a href="#compilation">编译流水线</a>
+                    <ul>
+                        <li><a href="#parser">Parser</a></li>
+                        <li><a href="#ignition">Ignition</a></li>
+                        <li><a href="#sparkplug">Sparkplug</a></li>
+                        <li><a href="#maglev">Maglev</a></li>
+                        <li><a href="#turbofan">TurboFan</a></li>
+                    </ul>
+                </li>
+                <li><a href="#objects">对象表示与内存模型</a>
+                    <ul>
+                        <li><a href="#memory-layout">内存布局</a></li>
+                        <li><a href="#hidden-class">隐藏类</a></li>
+                        <li><a href="#smi">Smi 与 Tagged 指针</a></li>
+                        <li><a href="#pointer-compression">指针压缩</a></li>
+                    </ul>
+                </li>
+                <li><a href="#gc">垃圾回收机制</a>
+                    <ul>
+                        <li><a href="#generational">分代策略</a></li>
+                        <li><a href="#mark-compact">Mark-Compact</a></li>
+                        <li><a href="#incremental">增量与并发</a></li>
+                        <li><a href="#orinoco">Orinoco</a></li>
+                    </ul>
+                </li>
+                <li><a href="#memory">内存管理方案</a></li>
+                <li><a href="#core-tech">核心技术点详解</a></li>
+                <li><a href="#optimization">性能优化建议</a></li>
+                <li><a href="#learning">学习路径与建议</a></li>
+            </ul>
+        </div>
+        
+        <div class="main-content">
+            <div class="header">
+                <h1>V8 JavaScript 引擎深度学习指南</h1>
+                <p>适合初级和中级程序员的 V8 引擎技术解析</p>
+            </div>
+            
+            <blockquote>
+                <strong>文档目标</strong>：让初级程序员也能轻松理解 V8 引擎的核心原理。每个概念都会用生活中的类比来解释，并附上 V8 源代码链接供进一步深入。<br>
+                <strong>V8 源码仓库</strong>：<a href="https://github.com/v8/v8" target="_blank">https://github.com/v8/v8</a>
+            </blockquote>
+            
+            <hr>
+            
+            <section id="preface">
+                <h2>前置知识</h2>
+                <p>在学习 V8 之前，你需要了解以下几个基本概念。不用担心，这里会用最简单的语言解释。</p>
+                
+                <h3>1. 什么是编译器？</h3>
+                <p><strong>生活类比</strong>：编译器就像一个"翻译官"。你写的是 JavaScript（人类容易理解的语言），但计算机只懂机器码（0 和 1）。编译器负责把你的代码翻译成计算机能直接执行的语言。</p>
+                
+                <pre><code>// 你写的 JavaScript
+function add(a, b) {
+  return a + b;
+}
+
+// 编译器最终可能生成类似这样的机器码（伪代码）
+// LOAD register1, a
+// LOAD register2, b
+// ADD register3, register1, register2
+// RETURN register3</code></pre>
+                
+                <h3>2. 什么是虚拟机？</h3>
+                <p><strong>生活类比</strong>：虚拟机就像一个"模拟城市"。在这个城市里，JavaScript 对象就像居民，内存就像土地，垃圾回收器就像清洁工。V8 创建了一个独立的环境来运行 JavaScript，这个环境就是虚拟机。</p>
+                
+                <h3>3. 什么是内存堆？</h3>
+                <p><strong>生活类比</strong>：堆就像一个大仓库。当你创建对象时（如 <code>let obj = {}</code>），V8 就在仓库里找一块空地存放这个对象。仓库满了就需要"清理"——这就是垃圾回收。</p>
+                
+                <h3>4. 指针是什么？</h3>
+                <p><strong>生活类比</strong>：指针就像"地址标签"。对象存放在内存的某个位置，指针就是这个位置的"门牌号"。通过门牌号，V8 可以快速找到对象，而不需要在整个仓库里搜索。</p>
+                
+                <div class="summary">
+                    <strong>小结</strong>：编译器翻译代码，虚拟机提供运行环境，堆是存储对象的仓库，指针是找到对象的地址标签。
+                </div>
+            </section>
+            
+            <hr>
+            
+            <section id="overview">
+                <h2>V8 引擎概述</h2>
+                
+                <h3>V8 是什么？</h3>
+                <p>V8 是 Google 开发的开源 JavaScript 和 WebAssembly 引擎，用 C++ 编写。它被用于 Chrome 浏览器和 Node.js 等环境。</p>
+                <p><strong>核心使命</strong>：让 JavaScript 跑得像原生代码一样快。</p>
+                <p>传统上，JavaScript 是解释执行的——就像你读一本外文书，一边读一边翻译，速度很慢。V8 的创新在于它把 JavaScript <strong>直接编译成机器码</strong>，就像提前把整本书翻译好，阅读时直接看译文，速度大大提升。</p>
+                
+                <h3>V8 的四大核心特点</h3>
+                <table>
+                    <tr>
+                        <th>特点</th>
+                        <th>通俗解释</th>
+                        <th>生活类比</th>
+                    </tr>
+                    <tr>
+                        <td><strong>即时编译（JIT）</strong></td>
+                        <td>边运行边优化代码</td>
+                        <td>就像厨师边做菜边改进配方</td>
+                    </tr>
+                    <tr>
+                        <td><strong>垃圾回收自动化</strong></td>
+                        <td>自动清理不用的内存</td>
+                        <td>就像房间里的自动清洁机器人</td>
+                    </tr>
+                    <tr>
+                        <td><strong>内存管理智能化</strong></td>
+                        <td>高效分配和回收内存</td>
+                        <td>就像仓库管理员优化货物摆放</td>
+                    </tr>
+                    <tr>
+                        <td><strong>投机性优化</strong></td>
+                        <td>猜测代码会如何运行并提前优化</td>
+                        <td>就像预测顾客点什么菜提前准备</td>
+                    </tr>
+                </table>
+                
+                <h3>V8 的整体架构（四层模型）</h3>
+                <p>想象 V8 是一座四层大楼：</p>
+                
+                <div class="ascii-art">
++---------------------------+
+|  第四层：JavaScript 标准库  |  &lt;- 提供 Array、String、Promise 等内置对象
+|  (src/builtins/, src/api/) |
++---------------------------+
+|  第三层：执行引擎           |  &lt;- Ignition、Sparkplug、Maglev、TurboFan
+|  (src/interpreter/         |     四级编译流水线
+|   src/compiler/            |
+|   src/maglev/)             |
++---------------------------+
+|  第二层：运行时系统         |  &lt;- 内存管理、垃圾回收、线程调度
+|  (src/heap/, src/base/     |
+|   src/runtime/)            |
++---------------------------+
+|  第一层：平台抽象层         |  &lt;- 与操作系统交互（内存分配、线程创建）
+|  (src/base/platform/)      |
++---------------------------+
+                </div>
+                
+                <p><strong>为什么要分层？</strong> 就像公司有不同的部门，每个部门负责不同的工作。分层让 V8 的代码更清晰，也更容易维护和优化。</p>
+                
+                <div class="tip">
+                    <strong>源码入口</strong>：V8 的主入口文件是 <a href="https://github.com/v8/v8/blob/main/src/d8/d8.cc" target="_blank">src/d8/d8.cc</a>，这是 V8 的 Shell 程序，可以交互式执行 JavaScript。
+                </div>
+                
+                <h3>关键概念：Isolate 和 Context</h3>
+                
+                <p><strong>Isolate（隔离实例）</strong>：V8 中的独立 JavaScript 虚拟机实例。</p>
+                <p><strong>生活类比</strong>：Isolate 就像一栋独立的办公楼。每栋楼有自己的电力系统、空调、保安——完全独立。Chrome 浏览器的每个标签页通常都有自己的 Isolate，这样即使一个页面崩溃了，也不会影响其他页面。</p>
+                
+                <pre><code>// 创建 Isolate 的简化流程（概念性代码）
+// 源码位置：src/api/api.cc
+v8::Isolate* isolate = v8::Isolate::New(params);
+// 1. 初始化堆内存
+// 2. 创建垃圾回收器
+// 3. 初始化编译器
+// 4. 加载内置代码</code></pre>
+                
+                <p><strong>Context（执行上下文）</strong>：JavaScript 代码执行的容器。</p>
+                <p><strong>生活类比</strong>：Context 就像办公楼里的一间办公室。同一栋楼（Isolate）里可以有很多间办公室（Context），每间办公室有自己的办公用品（全局对象），不同办公室之间互不干扰。</p>
+                
+                <div class="tip">
+                    <strong>源码参考</strong>：<br>
+                    - Isolate 定义：<a href="https://github.com/v8/v8/blob/main/src/execution/isolate.h" target="_blank">src/execution/isolate.h</a><br>
+                    - Context 定义：<a href="https://github.com/v8/v8/blob/main/src/objects/contexts.h" target="_blank">src/objects/contexts.h</a>
+                </div>
+                
+                <div class="summary">
+                    <strong>小结</strong>：V8 是一座四层大楼，Isolate 是独立的大楼，Context 是大楼里的办公室。JavaScript 代码在办公室里执行。
+                </div>
+            </section>
+            
+            <hr>
+
+            <section id="architecture">
+                <h2>源代码结构与架构</h2>
+                
+                <h3 id="dir-structure">整体目录结构</h3>
+                <p>V8 的源码仓库就像一个大图书馆，不同的书架（目录）放不同类型的书（代码）。</p>
+                
+                <div class="ascii-art">
+v8/                          &lt;- 图书馆大门
+├── src/                     &lt;- 核心藏书区（最重要的源代码）
+│   ├── interpreter/         &lt;- Ignition 解释器
+│   ├── compiler/            &lt;- TurboFan 优化编译器
+│   ├── maglev/              &lt;- Maglev 中间层编译器（2023年新增）
+│   ├── heap/                &lt;- 堆管理和垃圾回收
+│   ├── objects/             &lt;- JavaScript 对象的 C++ 表示
+│   ├── parsing/             &lt;- 词法分析和语法分析（Parser）
+│   ├── runtime/             &lt;- 运行时内置函数
+│   ├── builtins/            &lt;- 内置 JavaScript 函数的实现
+│   ├── base/                &lt;- 基础工具类和平台抽象
+│   └── api/                 &lt;- 对外暴露的 C++ API
+├── include/                 &lt;- 对外公开的头文件（供 Chrome/Node.js 使用）
+├── test/                    &lt;- 测试用例
+├── third_party/             &lt;- 第三方依赖库
+└── tools/                   &lt;- 构建和调试工具
+                </div>
+                
+                <h3 id="core-modules">核心模块详解</h3>
+                
+                <h4>Parser（解析器）——"代码的阅读理解器"</h4>
+                <p><strong>作用</strong>：把 JavaScript 源代码转换成抽象语法树（AST）。</p>
+                <p><strong>生活类比</strong>：Parser 就像语文老师批改作文。它先"分词"（词法分析），把句子拆成词语；然后"分析语法"（语法分析），理解句子的结构；最后画出"思维导图"（AST），表示文章的结构。</p>
+                
+                <pre><code>// 你的代码
+function add(a, b) {
+  return a + b;
+}
+
+// Parser 生成的 AST（简化表示）
+// FunctionDeclaration
+//   ├── name: "add"
+//   ├── params: ["a", "b"]
+//   └── body: BlockStatement
+//         └── ReturnStatement
+//               └── BinaryExpression (+)
+//                     ├── left: Identifier "a"
+//                     └── right: Identifier "b"</code></pre>
+                
+                <div class="tip">
+                    <strong>源码位置</strong>：<br>
+                    - 主 Parser 实现：<a href="https://github.com/v8/v8/blob/main/src/parsing/parser.cc" target="_blank">src/parsing/parser.cc</a><br>
+                    - 词法分析器 Scanner：<a href="https://github.com/v8/v8/blob/main/src/parsing/scanner.cc" target="_blank">src/parsing/scanner.cc</a><br>
+                    - AST 节点定义：<a href="https://github.com/v8/v8/blob/main/src/ast/ast.h" target="_blank">src/ast/ast.h</a>
+                </div>
+                
+                <h4>Ignition（解释器）——"快速启动的执行者"</h4>
+                <p><strong>作用</strong>：执行字节码，同时收集类型反馈信息。</p>
+                <p><strong>生活类比</strong>：Ignition 就像一位"速记员"。它不需要把整篇文章翻译成另一种语言（编译），而是直接按照速记符号（字节码）逐条执行。同时，它还会记录哪些词经常出现（热点代码），供后续的优化编译器使用。</p>
+                
+                <div class="card">
+                    <h4>为什么需要 Ignition？</h4>
+                    <ul>
+                        <li><strong>快速启动</strong>：不需要等待编译，拿到字节码就能执行</li>
+                        <li><strong>节省内存</strong>：字节码比机器码紧凑得多</li>
+                        <li><strong>收集信息</strong>：记录代码实际运行时的类型信息，为优化做准备</li>
+                    </ul>
+                </div>
+                
+                <div class="tip">
+                    <strong>源码位置</strong>：<br>
+                    - 解释器主文件：<a href="https://github.com/v8/v8/blob/main/src/interpreter/interpreter.cc" target="_blank">src/interpreter/interpreter.cc</a><br>
+                    - 字节码定义：<a href="https://github.com/v8/v8/blob/main/src/interpreter/bytecodes.h" target="_blank">src/interpreter/bytecodes.h</a><br>
+                    - 字节码生成器：<a href="https://github.com/v8/v8/blob/main/src/interpreter/bytecode-generator.cc" target="_blank">src/interpreter/bytecode-generator.cc</a>
+                </div>
+                
+                <h4>Sparkplug（基线编译器）——"快速翻译员"</h4>
+                <p><strong>作用</strong>：将字节码快速编译成机器码，不做复杂优化。</p>
+                <p><strong>生活类比</strong>：Sparkplug 就像一位"快速翻译员"。它不追求译文优美（不做复杂优化），但翻译速度极快。对于那些只执行几次的代码，Sparkplug 比 Ignition 解释执行更快。</p>
+                
+                <div class="card">
+                    <h4>为什么需要 Sparkplug？</h4>
+                    <ul>
+                        <li>Ignition 解释执行有开销（取指、译码、执行循环）</li>
+                        <li>TurboFan 优化编译太慢（需要收集足够的反馈信息）</li>
+                        <li>Sparkplug 填补中间空白：编译快，执行也比解释快</li>
+                    </ul>
+                </div>
+                
+                <div class="tip">
+                    <strong>源码位置</strong>：<a href="https://github.com/v8/v8/blob/main/src/baseline/baseline-compiler.cc" target="_blank">src/baseline/baseline-compiler.cc</a>
+                </div>
+                
+                <h4>Maglev（中间层优化编译器）——"聪明的翻译员"</h4>
+                <p><strong>作用</strong>：在 Sparkplug 和 TurboFan 之间提供中等程度的优化。</p>
+                <p><strong>生活类比</strong>：Maglev 就像一位"聪明的翻译员"。它比快速翻译员（Sparkplug）花更多时间打磨译文，但比顶级翻译家（TurboFan）快得多。对于那些"有点热"但还不够"大热"的代码，Maglev 是最佳选择。</p>
+                
+                <div class="card">
+                    <h4>Maglev 的特点</h4>
+                    <ul>
+                        <li>使用 SSA（静态单赋值）形式的中间表示</li>
+                        <li>基于控制流图（CFG），而非 TurboFan 的 Sea of Nodes</li>
+                        <li>编译速度快，生成的代码质量明显高于 Sparkplug</li>
+                        <li>2023 年 12 月在 Chrome M117 中引入</li>
+                    </ul>
+                </div>
+                
+                <div class="ascii-art">
+性能对比（Speedometer 基准测试）：
+Ignition:                    基准线
+Ignition + Sparkplug:        +41%
+Ignition + Maglev:           +60%（估算）
+Ignition + TurboFan:         +50%（但编译慢）
+Ignition + Sparkplug + Maglev + TurboFan: 最佳组合
+                </div>
+                
+                <div class="tip">
+                    <strong>源码位置</strong>：<br>
+                    - Maglev 主目录：<a href="https://github.com/v8/v8/tree/main/src/maglev" target="_blank">src/maglev/</a><br>
+                    - Maglev 编译器：<a href="https://github.com/v8/v8/blob/main/src/maglev/maglev-compiler.cc" target="_blank">src/maglev/maglev-compiler.cc</a>
+                </div>
+                
+                <h4>TurboFan（优化编译器）——"顶级翻译家"</h4>
+                <p><strong>作用</strong>：对热点代码进行深度优化，生成最高效的机器码。</p>
+                <p><strong>生活类比</strong>：TurboFan 就像一位"顶级翻译家"。它会反复研读原文（收集反馈信息），理解深层含义（类型推断），然后写出最优美的译文（优化后的机器码）。但这个过程需要时间，所以只对"大热"的代码使用。</p>
+                
+                <div class="card">
+                    <h4>TurboFan 的演进</h4>
+                    <ul>
+                        <li>最初使用 Sea of Nodes IR（中间表示）</li>
+                        <li>现在后端已迁移到 Turboshaft（基于 CFG 的 IR）</li>
+                        <li>前端正在逐步被 Maglev 替代</li>
+                    </ul>
+                </div>
+                
+                <div class="tip">
+                    <strong>源码位置</strong>：<br>
+                    - TurboFan 主目录：<a href="https://github.com/v8/v8/tree/main/src/compiler" target="_blank">src/compiler/</a><br>
+                    - Turboshaft 目录：<a href="https://github.com/v8/v8/tree/main/src/compiler/turboshaft" target="_blank">src/compiler/turboshaft/</a>
+                </div>
+                
+                <h4>垃圾回收模块——"自动清洁工"</h4>
+                <p><strong>作用</strong>：自动回收不再使用的内存。</p>
+                <p><strong>生活类比</strong>：垃圾回收器就像城市里的"清洁工系统"。它定期检查城市里哪些房子（对象）已经没人住了（不再被引用），然后拆除这些房子，把土地（内存）回收再利用。</p>
+                
+                <div class="tip">
+                    <strong>源码位置</strong>：<br>
+                    - 堆管理核心：<a href="https://github.com/v8/v8/blob/main/src/heap/heap.cc" target="_blank">src/heap/heap.cc</a><br>
+                    - Scavenge 算法：<a href="https://github.com/v8/v8/blob/main/src/heap/scavenger.cc" target="_blank">src/heap/scavenger.cc</a><br>
+                    - Mark-Compact 算法：<a href="https://github.com/v8/v8/blob/main/src/heap/mark-compact.cc" target="_blank">src/heap/mark-compact.cc</a>
+                </div>
+                
+                <h3 id="init-flow">入口点与初始化流程</h3>
+                
+                <div class="ascii-art">
+启动 V8 的完整流程：
+
+1. 创建 Isolate
+   └── 初始化堆内存
+   └── 创建垃圾回收器
+   └── 初始化编译器（Ignition、Sparkplug、Maglev、TurboFan）
+   └── 加载内置代码（Builtins）
+
+2. 创建 Context
+   └── 创建全局对象（window/globalThis）
+   └── 设置内置对象（Array、Object、Promise 等）
+
+3. 执行 JavaScript 代码
+   └── 解析源代码 -> AST
+   └── AST -> 字节码（Ignition）
+   └── 解释执行字节码，收集反馈
+   └── 如果函数变热 -> Sparkplug 编译
+   └── 如果函数更热 -> Maglev 优化编译
+   └── 如果函数大热 -> TurboFan 深度优化
+   └── 如果假设失败 -> 去优化（Deoptimization）
+                </div>
+                
+                <div class="tip">
+                    <strong>源码参考</strong>：<br>
+                    - Isolate 初始化：<a href="https://github.com/v8/v8/blob/main/src/execution/isolate.cc" target="_blank">src/execution/isolate.cc</a><br>
+                    - Context 创建：<a href="https://github.com/v8/v8/blob/main/src/api/api.cc" target="_blank">src/api/api.cc</a>
+                </div>
+                
+                <div class="summary">
+                    <strong>小结</strong>：V8 的源码组织清晰，每个目录有明确职责。编译流水线有四层：Ignition（解释）-&gt; Sparkplug（基线编译）-&gt; Maglev（中层优化）-&gt; TurboFan（深度优化）。
+                </div>
+            </section>
+            
+            <hr>
+
+            <section id="compilation">
+                <h2>编译流水线</h2>
+                <p>编译流水线是 V8 最核心的部分。它决定了 JavaScript 代码如何被转换成高效的机器码。</p>
+                
+                <h3>四级编译架构概览</h3>
+                
+                <div class="ascii-art">
+JavaScript 源代码
+       │
+       ▼
+   [Parser]  ────────────────┐
+       │                      │
+       ▼                      │
+   AST（抽象语法树）            │
+       │                      │
+       ▼                      │
+[BytecodeGenerator]           │
+       │                      │
+       ▼                      │
+  字节码（Bytecode）           │
+       │                      │
+       ├───► [Ignition] ──────┤ 解释执行，收集反馈
+       │       │              │
+       │       ▼              │
+       │   反馈信息收集        │
+       │       │              │
+       ├───► [Sparkplug] ─────┤ 快速编译为机器码
+       │       │              │
+       │       ▼              │
+       │   基线机器码          │
+       │       │              │
+       ├───► [Maglev] ────────┤ 中层优化编译
+       │       │              │
+       │       ▼              │
+       │   优化机器码          │
+       │       │              │
+       └───► [TurboFan] ──────┤ 深度优化编译
+               │              │
+               ▼              │
+           高度优化机器码      │
+               │              │
+               ▼              │
+         [去优化] ◄───────────┘ 如果假设失败
+                </div>
+                
+                <h3>从源代码到字节码</h3>
+                
+                <h4>第一步：词法分析（Lexical Analysis）</h4>
+                <p><strong>Scanner</strong> 把源代码字符串拆分成一个个 <strong>Token</strong>（词法单元）。</p>
+                
+                <pre><code>// 源代码
+function add(a, b) { return a + b; }
+
+// Token 序列（简化）
+[FUNCTION, IDENTIFIER("add"), LPAREN, IDENTIFIER("a"), COMMA,
+ IDENTIFIER("b"), RPAREN, LBRACE, RETURN, IDENTIFIER("a"), PLUS,
+ IDENTIFIER("b"), SEMICOLON, RBRACE]</code></pre>
+                
+                <p><strong>生活类比</strong>：词法分析就像把一句话拆成一个个单词。"我喜欢编程" -&gt; ["我", "喜欢", "编程"]。</p>
+                
+                <div class="tip">
+                    <strong>源码位置</strong>：<a href="https://github.com/v8/v8/blob/main/src/parsing/scanner.cc" target="_blank">src/parsing/scanner.cc</a>
+                </div>
+                
+                <h4>第二步：语法分析（Parsing）</h4>
+                <p><strong>Parser</strong> 根据 ECMAScript 语法规范，把 Token 序列构建成 <strong>AST</strong>（抽象语法树）。</p>
+                
+                <pre><code>// AST 可视化（简化）
+//              FunctionDeclaration
+//                   /    \
+//               name    body
+//                |        |
+//              "add"   BlockStatement
+//                       /
+//              ReturnStatement
+//                    /
+//            BinaryExpression (+)
+//                 /      \
+//         Identifier    Identifier
+//             |             |
+//            "a"           "b"</code></pre>
+                
+                <p><strong>生活类比</strong>：语法分析就像分析句子的语法结构。"猫捉老鼠" -&gt; [主语: 猫, 谓语: 捉, 宾语: 老鼠]。</p>
+                
+                <div class="tip">
+                    <strong>源码位置</strong>：<a href="https://github.com/v8/v8/blob/main/src/parsing/parser.cc" target="_blank">src/parsing/parser.cc</a>
+                </div>
+                
+                <h4>第三步：字节码生成</h4>
+                <p><strong>BytecodeGenerator</strong> 遍历 AST，为每个节点生成对应的字节码指令。</p>
+                
+                <pre><code>// JavaScript 代码
+function add(a, b) {
+  return a + b;
+}
+
+// 生成的字节码（简化表示）
+// Ldar a          ; 加载参数 a 到累加器
+// Add b           ; 加上参数 b
+// Return          ; 返回累加器的值</code></pre>
+                
+                <div class="card">
+                    <h4>Ignition 字节码的特点</h4>
+                    <ul>
+                        <li><strong>基于寄存器</strong>：使用寄存器而不是栈来传递参数，效率更高</li>
+                        <li><strong>紧凑</strong>：每个指令通常只有 1-2 字节</li>
+                        <li><strong>可移植</strong>：与具体 CPU 架构无关</li>
+                    </ul>
+                </div>
+                
+                <div class="tip">
+                    <strong>源码位置</strong>：<br>
+                    - 字节码生成器：<a href="https://github.com/v8/v8/blob/main/src/interpreter/bytecode-generator.cc" target="_blank">src/interpreter/bytecode-generator.cc</a><br>
+                    - 字节码定义：<a href="https://github.com/v8/v8/blob/main/src/interpreter/bytecodes.h" target="_blank">src/interpreter/bytecodes.h</a>
+                </div>
+                
+                <h3 id="ignition">Ignition 解释器详解</h3>
+                
+                <h4>执行模型</h4>
+                <p>Ignition 使用经典的"取指-译码-执行"循环：</p>
+                
+                <div class="ascii-art">
+        ┌─────────────────┐
+        │   取指 (Fetch)   │  &lt;- 从字节码数组中读取下一条指令
+        └────────┬────────┘
+                 ▼
+        ┌─────────────────┐
+        │   译码 (Decode)  │  &lt;- 解析指令的操作码和操作数
+        └────────┬────────┘
+                 ▼
+        ┌─────────────────┐
+        │   执行 (Execute) │  &lt;- 调用对应的 handler 执行
+        └────────┬────────┘
+                 │
+                 └──────────────► 回到取指（循环）
+                </div>
+                
+                <h4>反馈信息收集</h4>
+                <p>Ignition 在执行过程中收集各种反馈信息，存储在 <strong>FeedbackVector</strong>（反馈向量）中：</p>
+                
+                <pre><code>// FeedbackVector 的概念结构（简化）
+struct FeedbackVector {
+  uint32_t invocation_count;     // 函数被调用次数
+  uint32_t optimization_marker;  // 优化标记
+  
+  // 每个操作对应一个槽位
+  FeedbackSlot slots[];
+};
+
+// 反馈槽位的类型
+enum FeedbackType {
+  kBinaryOp,      // 二元操作类型（如 + 操作的是整数还是字符串）
+  kCompareOp,     // 比较操作类型
+  kForIn,         // for-in 迭代信息
+  kInstanceOf,    // instanceof 检查
+  kCall,          // 函数调用信息
+  kLoadProperty,  // 属性访问信息
+  kStoreProperty, // 属性存储信息
+};</code></pre>
+                
+                <p><strong>生活类比</strong>：FeedbackVector 就像运动员的"训练记录表"。每次训练（执行）后，记录用了什么器材（类型）、做了多少组（调用次数）。教练（编译器）根据记录表制定训练计划（优化策略）。</p>
+                
+                <pre><code>// 示例：反馈信息如何帮助优化
+function add(x, y) {
+  return x + y;
+}
+
+add(1, 2);      // 反馈：整数加法
+add(3, 4);      // 反馈：整数加法
+add(5, 6);      // 反馈：整数加法
+
+// TurboFan 看到反馈后，假设 add 总是接收整数
+// 生成专门的整数加法机器码（非常快）
+// 但如果突然调用 add("a", "b")，假设失效，触发去优化</code></pre>
+                
+                <div class="tip">
+                    <strong>源码位置</strong>：<br>
+                    - FeedbackVector 定义：<a href="https://github.com/v8/v8/blob/main/src/objects/feedback-vector.h" target="_blank">src/objects/feedback-vector.h</a><br>
+                    - 解释器执行循环：<a href="https://github.com/v8/v8/blob/main/src/interpreter/interpreter-generator.cc" target="_blank">src/interpreter/interpreter-generator.cc</a>
+                </div>
+                
+                <h3 id="sparkplug">Sparkplug 基线编译器详解</h3>
+                <p>Sparkplug 是 V8 的"快速翻译员"，它的设计哲学是：<strong>编译速度优先，不做复杂分析</strong>。</p>
+                
+                <h4>编译流程</h4>
+                <div class="ascii-art">
+字节码输入
+    │
+    ▼
+逐条读取字节码指令
+    │
+    ▼
+查找对应的机器码模板
+    │
+    ▼
+拼接生成机器码
+    │
+    ▼
+输出机器码（几乎不做优化）
+                </div>
+                
+                <div class="card">
+                    <h4>关键技术：Quickening</h4>
+                    <p>Sparkplug 使用一种称为 <strong>quickening</strong> 的技术，在编译时做一些简单的优化决策。例如，如果反馈信息显示某个操作总是针对特定类型，Sparkplug 可以直接生成针对该类型的机器码。</p>
+                </div>
+                
+                <div class="tip">
+                    <strong>源码位置</strong>：<a href="https://github.com/v8/v8/blob/main/src/baseline/baseline-compiler.cc" target="_blank">src/baseline/baseline-compiler.cc</a>
+                </div>
+                
+                <h3 id="maglev">Maglev 中间层优化编译器详解</h3>
+                <p>Maglev 是 V8 最新的编译器（2023年12月发布），填补了 Sparkplug 和 TurboFan 之间的空白。</p>
+                
+                <h4>为什么需要 Maglev？</h4>
+                <div class="ascii-art">
+性能差距示意图：
+
+Ignition:     ████ 基准
+Sparkplug:    ████████ +41%
+Maglev:       ████████████ +60%（编译快）
+TurboFan:     ████████████████ +100%（编译慢）
+              └────┬────┘
+                   Maglev 填补的空白
+                </div>
+                <p>很多函数"有点热"但不够"大热"，TurboFan 编译它们得不偿失，Sparkplug 又不够快。Maglev 正是为这类函数设计的。</p>
+                
+                <h4>Maglev 的编译流程</h4>
+                <pre><code>1. Prepass（预扫描）
+   └── 遍历字节码，找到分支目标、循环
+   └── 收集变量活跃性信息
+
+2. SSA 图构建
+   └── 抽象解释执行帧状态
+   └── 创建 SSA 节点表示表达式结果
+   └── 在分支处插入 Phi 节点合并值
+
+3. 已知节点信息传播
+   └── 利用运行时反馈生成专门化节点
+   └── 例如：如果 o.x 总是访问同一形状的对象
+       └── 生成 ShapeCheck + LoadField（按偏移量加载）
+
+4. 表示选择
+   └── 选择数值的最佳表示方式（Smi、Float64、Tagged）
+
+5. 代码生成
+   └── 将 SSA 图转换为目标机器码</code></pre>
+                
+                <p><strong>生活类比</strong>：Maglev 就像一位"有经验的翻译员"。它不像 TurboFan 那样反复推敲每个词，但会比 Sparkplug 多做一些"润色"——比如发现原文里某个词反复出现，就会在译文中统一处理。</p>
+                
+                <h4>Maglev vs TurboFan</h4>
+                <table>
+                    <tr>
+                        <th>特性</th>
+                        <th>Maglev</th>
+                        <th>TurboFan</th>
+                    </tr>
+                    <tr>
+                        <td>IR 类型</td>
+                        <td>CFG + SSA</td>
+                        <td>Sea of Nodes / Turboshaft</td>
+                    </tr>
+                    <tr>
+                        <td>编译速度</td>
+                        <td>快</td>
+                        <td>慢</td>
+                    </tr>
+                    <tr>
+                        <td>优化深度</td>
+                        <td>中等</td>
+                        <td>深</td>
+                    </tr>
+                    <tr>
+                        <td>适用场景</td>
+                        <td>中等热度代码</td>
+                        <td>高热度代码</td>
+                    </tr>
+                    <tr>
+                        <td>去优化开销</td>
+                        <td>较低</td>
+                        <td>较高</td>
+                    </tr>
+                </table>
+                
+                <div class="tip">
+                    <strong>源码位置</strong>：<br>
+                    - Maglev 主目录：<a href="https://github.com/v8/v8/tree/main/src/maglev" target="_blank">src/maglev/</a><br>
+                    - SSA 图构建：<a href="https://github.com/v8/v8/blob/main/src/maglev/maglev-graph-builder.cc" target="_blank">src/maglev/maglev-graph-builder.cc</a><br>
+                    - 代码生成：<a href="https://github.com/v8/v8/blob/main/src/maglev/maglev-code-generator.cc" target="_blank">src/maglev/maglev-code-generator.cc</a>
+                </div>
+                
+                <h3 id="turbofan">TurboFan 优化编译器详解</h3>
+                <p>TurboFan 是 V8 的"顶级翻译家"，负责对真正的热点代码进行深度优化。</p>
+                
+                <h4>编译流水线</h4>
+                <div class="ascii-art">
+JavaScript / 字节码
+       │
+       ▼
+  [前端] 构建 Sea of Nodes 图
+       │
+       ▼
+  [优化 Pass] 各种优化变换
+       │
+       ▼
+  [Turboshaft] 基于 CFG 的低层优化
+       │
+       ▼
+  [后端] 寄存器分配、指令选择、代码生成
+       │
+       ▼
+  机器码
+                </div>
+                
+                <h4>关键优化技术</h4>
+                
+                <div class="card">
+                    <h4>1. 内联（Inlining）</h4>
+                    <p>把函数调用替换为函数体，消除调用开销。</p>
+                    <pre><code>// 原始代码
+function add(a, b) { return a + b; }
+function calc() { return add(1, 2); }
+
+// 内联后
+function calc() {
+  // add(1, 2) 的函数体被直接插入
+  return 1 + 2;  // 甚至可以进一步常量折叠为 3
+}</code></pre>
+                </div>
+                
+                <div class="card">
+                    <h4>2. 常量折叠（Constant Folding）</h4>
+                    <p>在编译时计算常量表达式。</p>
+                    <pre><code>// 原始代码
+const x = 2 + 3 * 4;
+
+// 优化后
+const x = 14;  // 编译时直接计算</code></pre>
+                </div>
+                
+                <div class="card">
+                    <h4>3. 死代码消除（Dead Code Elimination）</h4>
+                    <p>删除不会被执行的代码。</p>
+                    <pre><code>// 原始代码
+function foo() {
+  const x = 1;
+  return 2;
+  console.log(x);  // 永远不会执行
+}
+
+// 优化后
+function foo() {
+  return 2;
+}</code></pre>
+                </div>
+                
+                <div class="card">
+                    <h4>4. 逃逸分析（Escape Analysis）</h4>
+                    <p>分析对象是否"逃逸"出函数，如果没有逃逸，可以在栈上分配而不是堆上。</p>
+                    <pre><code>// 原始代码
+function createPoint() {
+  return { x: 1, y: 2 };  // 对象逃逸了（被返回）
+}
+
+function usePoint() {
+  const p = { x: 1, y: 2 };  // 对象没有逃逸
+  console.log(p.x + p.y);
+}
+
+// 逃逸分析后，usePoint 中的 p 可以在栈上分配
+// 不需要垃圾回收器来清理</code></pre>
+                </div>
+                
+                <h4>投机性优化与去优化</h4>
+                <p>TurboFan 的优化是<strong>投机性</strong>的——它基于收集到的反馈信息做出假设，然后生成优化代码。</p>
+                
+                <pre><code>function add(x, y) {
+  return x + y;
+}
+
+// 假设反馈显示总是传入整数
+// TurboFan 生成专门的整数加法代码
+
+add(1, 2);  // 快！走优化代码
+add(3, 4);  // 快！走优化代码
+
+add("a", "b");  // 糟糕！传入字符串了
+                // 假设失效 -> 触发去优化
+                // 回到 Ignition 重新执行
+                // 重新收集反馈...</code></pre>
+                
+                <p><strong>去优化（Deoptimization）</strong> 是 V8 适应动态特性的关键机制。它确保即使优化假设失败，代码仍然能正确执行。</p>
+                
+                <div class="tip">
+                    <strong>源码位置</strong>：<br>
+                    - TurboFan 主目录：<a href="https://github.com/v8/v8/tree/main/src/compiler" target="_blank">src/compiler/</a><br>
+                    - Turboshaft 目录：<a href="https://github.com/v8/v8/tree/main/src/compiler/turboshaft" target="_blank">src/compiler/turboshaft/</a><br>
+                    - 去优化机制：<a href="https://github.com/v8/v8/tree/main/src/deoptimizer" target="_blank">src/deoptimizer/</a>
+                </div>
+                
+                <div class="summary">
+                    <strong>小结</strong>：V8 的四级编译流水线是：Ignition（解释执行，收集反馈）-&gt; Sparkplug（快速编译）-&gt; Maglev（中层优化）-&gt; TurboFan（深度优化）。每一层都有自己的适用场景，共同构成了 V8 的高性能执行体系。
+                </div>
+            </section>
+            
+            <hr>
+
+            <section id="objects">
+                <h2>对象表示与内存模型</h2>
+                <p>JavaScript 是动态语言，对象的属性可以在运行时随意添加和删除。但 V8 需要在底层用 C++ 的高效数据结构来表示这些灵活的对象。这是 V8 最精妙的设计之一。</p>
+                
+                <h3 id="memory-layout">对象的内存布局</h3>
+                <p>V8 中每个 JavaScript 对象在内存中都是一段<strong>连续的空间</strong>。这种设计让属性访问非常高效。</p>
+                
+                <h4>三部分结构</h4>
+                <div class="ascii-art">
+对象在内存中的布局（64位系统）：
+
+┌─────────────────────────────────────────────────────┐
+│                    对象头 (Header)                    │  &lt;- 16 字节
+│  ┌─────────────────┬───────────────────────────────┐ │
+│  │   Map 指针       │   属性/元素信息 + 标志位        │ │
+│  │   (8 字节)       │   (8 字节)                      │ │
+│  └─────────────────┴───────────────────────────────┘ │
+├─────────────────────────────────────────────────────┤
+│                  属性内容 (Properties)                │  &lt;- 命名属性
+│  ┌─────────┬─────────┬─────────┬─────────────────┐  │
+│  │ prop1   │ prop2   │ prop3   │ ...             │  │
+│  └─────────┴─────────┴─────────┴─────────────────┘  │
+├─────────────────────────────────────────────────────┤
+│                  元素内容 (Elements)                  │  &lt;- 数组索引
+│  ┌─────────┬─────────┬─────────┬─────────────────┐  │
+│  │ elem0   │ elem1   │ elem2   │ ...             │  │
+│  └─────────┴─────────┴─────────┴─────────────────┘  │
+└─────────────────────────────────────────────────────┘
+                </div>
+                
+                <p><strong>生活类比</strong>：想象对象是一个"快递包裹"：</p>
+                <ul>
+                    <li><strong>对象头</strong> = 快递单（包含收件人信息、包裹大小等元数据）</li>
+                    <li><strong>属性内容</strong> = 包裹里的分类物品（按名字标记的物品）</li>
+                    <li><strong>元素内容</strong> = 包裹里的编号物品（按序号排列的物品，如书籍第1册、第2册）</li>
+                </ul>
+                
+                <h4>对象头详解</h4>
+                <p>对象头包含两个关键信息：</p>
+                <ol>
+                    <li><strong>Map 指针</strong>（8 字节）：指向该对象的"形状描述"（隐藏类）</li>
+                    <li><strong>属性信息</strong>（8 字节）：包含对象大小、元素类型、各种标志位</li>
+                </ol>
+                
+                <div class="tip">
+                    <strong>源码位置</strong>：<br>
+                    - 对象头定义：<a href="https://github.com/v8/v8/blob/main/src/objects/object-macros.h" target="_blank">src/objects/object-macros.h</a><br>
+                    - JSObject 定义：<a href="https://github.com/v8/v8/blob/main/src/objects/js-objects.h" target="_blank">src/objects/js-objects.h</a>
+                </div>
+                
+                <h3 id="hidden-class">隐藏类与形状系统</h3>
+                <p>隐藏类（Hidden Class，内部称为 <strong>Map</strong>）是 V8 实现高效属性访问的<strong>核心机制</strong>。</p>
+                
+                <h4>为什么需要隐藏类？</h4>
+                <p>JavaScript 是动态语言，理论上对象的属性可以随时增删：</p>
+                <pre><code>let obj = {};
+obj.name = "Alice";   // 添加属性
+obj.age = 25;         // 再添加
+delete obj.name;      // 删除属性</code></pre>
+                <p>如果每次访问属性都进行哈希表查找，速度会很慢。隐藏类的思想是：<strong>虽然属性可以动态变化，但大多数代码中，同一类型的对象结构是稳定的</strong>。</p>
+                
+                <p><strong>生活类比</strong>：隐藏类就像"身份证"。每个人的身份证上记录了姓名、性别、出生日期等信息。当两个人有相同的属性集合时，他们就属于同一个"类别"（相同的隐藏类）。V8 通过比较身份证（Map 指针），快速判断两个对象是否有相同的结构。</p>
+                
+                <h4>隐藏类的工作原理</h4>
+                <pre><code>// 示例：创建两个结构相同的对象
+function Person(name, age) {
+  this.name = name;
+  this.age = age;
+}
+
+const p1 = new Person("Alice", 25);
+const p2 = new Person("Bob", 30);</code></pre>
+                
+                <p>V8 内部的隐藏类转换过程：</p>
+                <div class="ascii-art">
+初始 Map（空对象）
+       │
+       │ 添加 name 属性
+       ▼
+   Map 1（有 name）
+       │
+       │ 添加 age 属性
+       ▼
+   Map 2（有 name, age）
+
+p1 和 p2 都指向 Map 2
+                </div>
+                
+                <div class="ascii-art">
+隐藏类转换链的可视化：
+
+  空 Map
+    │
+    │ add "name"
+    ▼
+┌─────────┐
+│  Map 1  │────── name 偏移量 = 0
+│         │
+└────┬────┘
+     │ add "age"
+     ▼
+┌─────────┐
+│  Map 2  │────── name 偏移量 = 0, age 偏移量 = 1
+│         │
+└─────────┘
+
+p1 ───────► Map 2
+p2 ───────► Map 2
+
+因为 p1 和 p2 指向同一个 Map，
+所以访问 p1.name 和 p2.name 都直接读取偏移量 0 的位置
+                </div>
+                
+                <h4>关键数据结构</h4>
+                <pre><code>// Map（隐藏类）的核心结构（简化）
+// 源码位置：src/objects/map.h
+
+class Map : public HeapObject {
+  // 实例大小（包含多少个属性槽位）
+  int instance_size();
+  
+  // 属性数量
+  int NumberOfOwnDescriptors();
+  
+  // 描述符数组（记录所有属性的信息）
+  DescriptorArray instance_descriptors();
+  
+  // 转换数组（记录添加新属性后的目标 Map）
+  TransitionArray raw_transitions();
+  
+  // 原型对象
+  Object prototype();
+  
+  // 元素类型（FAST_ELEMENTS, DICTIONARY_ELEMENTS 等）
+  ElementsKind elements_kind();
+};</code></pre>
+                
+                <div class="card">
+                    <h4>DescriptorArray（描述符数组）</h4>
+                    <p>记录了每个属性的详细信息：</p>
+                    <ul>
+                        <li>属性名</li>
+                        <li>属性类型（数据属性 / 访问器属性）</li>
+                        <li>属性在对象中的偏移量</li>
+                        <li>是否可写、可枚举、可配置</li>
+                    </ul>
+                </div>
+                
+                <div class="card">
+                    <h4>TransitionArray（转换数组）</h4>
+                    <p>记录了从当前 Map 添加新属性后可以转换到的目标 Map：</p>
+                    <div class="ascii-art">
+Map（name）的 TransitionArray:
+┌─────────────────────────────────────┐
+│ "age"  ->  Map（name, age）          │
+│ "city" ->  Map（name, city）         │
+└─────────────────────────────────────┘
+                    </div>
+                </div>
+                
+                <h4>隐藏类共享</h4>
+                <p>V8 会尽量让相同结构的对象共享同一个隐藏类，节省内存：</p>
+                <pre><code>// 这两个对象共享同一个隐藏类
+const obj1 = { x: 1, y: 2 };
+const obj2 = { x: 3, y: 4 };
+
+// 但这个对象有不同的隐藏类（属性顺序不同！）
+const obj3 = { y: 5, x: 6 };  // ⚠️ 不同的 Map！</code></pre>
+                
+                <div class="warning">
+                    <strong>常见误区</strong>：属性的添加顺序会影响隐藏类！
+                </div>
+                
+                <div class="tip">
+                    <strong>源码位置</strong>：<br>
+                    - Map 定义：<a href="https://github.com/v8/v8/blob/main/src/objects/map.h" target="_blank">src/objects/map.h</a><br>
+                    - DescriptorArray：<a href="https://github.com/v8/v8/blob/main/src/objects/descriptor-array.h" target="_blank">src/objects/descriptor-array.h</a><br>
+                    - 转换系统：<a href="https://github.com/v8/v8/blob/main/src/objects/transitions.h" target="_blank">src/objects/transitions.h</a>
+                </div>
+                
+                <h3 id="smi">小整数与 Tagged 指针</h3>
+                <p>V8 使用一种 clever 的技术来表示各种数据值，既能区分指针和整数，又不浪费内存。</p>
+                
+                <h4>Tagged 指针</h4>
+                <p>在 V8 中，一个 64 位的值可能是：</p>
+                <ul>
+                    <li><strong>指针</strong>：指向堆中的对象</li>
+                    <li><strong>Smi</strong>（Small Integer）：小整数</li>
+                    <li><strong>特殊值</strong>：如 <code>null</code>、<code>undefined</code>、<code>true</code>、<code>false</code></li>
+                </ul>
+                
+                <p>V8 用<strong>最低位</strong>来区分：</p>
+                <div class="ascii-art">
+值的位模式：
+
+指针：  ...xxxxxxxxxxxxxxxx0  &lt;- 最低位是 0
+Smi：   ...xxxxxxxxxxxxxxx1  &lt;- 最低位是 1
+
+注意：实际实现中，64 位系统上 Smi 使用 31 位（指针压缩）
+      32 位系统上 Smi 使用 30 位
+                </div>
+                
+                <p><strong>生活类比</strong>：Tagged 指针就像"双色球"。每个球有一个颜色标记（最低位），红色（0）表示"这是地址"，蓝色（1）表示"这是小整数"。通过看颜色就知道球的类型，不需要额外的标签。</p>
+                
+                <h4>Smi（Small Integer）</h4>
+                <p>Smi 是 V8 中最高效的整数表示：</p>
+                <pre><code>// Smi 的定义（简化）
+// 源码位置：src/objects/smi.h
+
+class Smi : public Object {
+ public:
+  // 将 C++ int 转换为 Smi
+  static Smi FromInt(int value) {
+    return Smi((value &lt;&lt; kSmiTagSize) | kSmiTag);
+  }
+  
+  // 从 Smi 提取值
+  int value() const {
+    return static_cast&lt;int&gt;(ptr()) &gt;&gt; kSmiTagSize;
+  }
+  
+  // 在 64 位系统上（指针压缩）：
+  // Smi 范围：-2^30 到 2^30 - 1（约 ±10 亿）
+  // 在 32 位系统上：
+  // Smi 范围：-2^30 到 2^30 - 1
+};</code></pre>
+                
+                <div class="card">
+                    <h4>为什么 Smi 很快？</h4>
+                    <ul>
+                        <li>不需要堆分配（直接在值中存储）</li>
+                        <li>整数运算不需要解引用（直接操作位）</li>
+                        <li>垃圾回收器不需要追踪 Smi（不是指针）</li>
+                    </ul>
+                </div>
+                
+                <pre><code>// 示例：Smi 的使用
+let a = 42;        // 42 是 Smi，直接存储在 Tagged 值中
+let b = 10000000000;  // 超出 Smi 范围，需要堆分配的 HeapNumber
+
+// 算术运算
+let c = a + 1;     // 快速！Smi + Smi = Smi
+let d = a + 1.5;   // 需要转换为浮点数运算</code></pre>
+                
+                <h4>HeapNumber</h4>
+                <p>对于超出 Smi 范围的整数或浮点数，V8 使用 <strong>HeapNumber</strong> 对象：</p>
+                <div class="ascii-art">
+HeapNumber 的内存布局：
+┌─────────────────┬─────────────────┐
+│   Map 指针       │   64 位浮点数值  │
+│  (8 字节)       │   (8 字节)      │
+└─────────────────┴─────────────────┘
+                </div>
+                
+                <div class="tip">
+                    <strong>源码位置</strong>：<br>
+                    - Smi 定义：<a href="https://github.com/v8/v8/blob/main/src/objects/smi.h" target="_blank">src/objects/smi.h</a><br>
+                    - HeapNumber 定义：<a href="https://github.com/v8/v8/blob/main/src/objects/heap-number.h" target="_blank">src/objects/heap-number.h</a>
+                </div>
+                
+                <h3 id="pointer-compression">指针压缩（Pointer Compression）</h3>
+                <p>在 64 位系统上，指针通常占用 8 字节。但 V8 发现大多数对象的地址都在一个相对较小的范围内。指针压缩技术利用这一点来节省内存。</p>
+                
+                <p><strong>原理</strong>：</p>
+                <ul>
+                    <li>V8 的堆通常分配在一个连续的 4GB 地址空间内</li>
+                    <li>4GB 空间可以用 32 位地址表示</li>
+                    <li>所以只需要存储 32 位的"偏移量"，需要时再扩展到 64 位完整指针</li>
+                </ul>
+                
+                <div class="ascii-art">
+指针压缩前（64 位）：
+每个指针：8 字节
+100 万个对象：8MB 的指针开销
+
+指针压缩后（32 位偏移）：
+每个指针：4 字节
+100 万个对象：4MB 的指针开销
+节省：50%！
+                </div>
+                
+                <div class="tip">
+                    <strong>源码位置</strong>：<a href="https://github.com/v8/v8/blob/main/src/common/ptr-compr-inl.h" target="_blank">src/common/ptr-compr-inl.h</a>
+                </div>
+                
+                <h3>FixedArray 与连续内存数组</h3>
+                <p><strong>FixedArray</strong> 是 V8 中最基础的数组类型，用于存储各种连续数据。</p>
+                
+                <div class="ascii-art">
+FixedArray 的内存布局：
+┌─────────────────┬─────────────────┬─────────┬─────────┐
+│   Map 指针       │   长度          │ 元素 0  │ 元素 1  │ ...
+│  (8 字节)       │  (8 字节)       │(8 字节) │(8 字节) │
+└─────────────────┴─────────────────┴─────────┴─────────┘
+                </div>
+                
+                <p>V8 有多种数组变体，针对不同场景优化：</p>
+                <table>
+                    <tr>
+                        <th>数组类型</th>
+                        <th>用途</th>
+                        <th>存储方式</th>
+                    </tr>
+                    <tr>
+                        <td>FixedArray</td>
+                        <td>通用对象数组</td>
+                        <td>Tagged 指针/值</td>
+                    </tr>
+                    <tr>
+                        <td>FixedDoubleArray</td>
+                        <td>浮点数数组</td>
+                        <td>原始 64 位浮点</td>
+                    </tr>
+                    <tr>
+                        <td>FixedTypedArray</td>
+                        <td>TypedArray 底层</td>
+                        <td>原始类型（int32, float64 等）</td>
+                    </tr>
+                </table>
+                
+                <h4>数组类型转换（Array Kind Transition）</h4>
+                <pre><code>// 数组最初只包含 Smi
+const arr = [1, 2, 3];  // PACKED_SMI_ELEMENTS
+
+// 添加浮点数 -> 转换为 Double 数组
+arr.push(1.5);          // PACKED_DOUBLE_ELEMENTS
+
+// 添加对象 -> 转换为通用数组
+arr.push({});           // PACKED_ELEMENTS
+
+// 删除元素 -> 可能变成 HOLEY（稀疏）
+delete arr[1];          // HOLEY_ELEMENTS</code></pre>
+                
+                <p><strong>生活类比</strong>：数组类型转换就像"车厢升级"。一开始是"整数专用车厢"（Smi），只能装整数。当需要装浮点数时，升级为"浮点车厢"（Double）。当需要装对象时，升级为"通用车厢"。一旦升级，通常不会降级。</p>
+                
+                <div class="tip">
+                    <strong>源码位置</strong>：<br>
+                    - FixedArray 定义：<a href="https://github.com/v8/v8/blob/main/src/objects/fixed-array.h" target="_blank">src/objects/fixed-array.h</a><br>
+                    - 元素类型定义：<a href="https://github.com/v8/v8/blob/main/src/elements-kind.h" target="_blank">src/elements-kind.h</a>
+                </div>
+                
+                <h3>对象的属性存储策略</h3>
+                <p>V8 使用两种策略存储对象属性：</p>
+                
+                <h4>1. 快速属性（Fast Properties）</h4>
+                <p>使用隐藏类和连续内存存储属性，访问速度快（O(1)）。</p>
+                <pre><code>// 快速属性的对象
+const obj = {
+  name: "Alice",
+  age: 25,
+  city: "Beijing"
+};
+
+// 内存布局（简化）：
+// 对象头 + [name 指针] [age: 25] [city 指针]
+// 访问 obj.age 直接读取偏移量 1 的位置</code></pre>
+                
+                <h4>2. 字典属性（Dictionary Properties）</h4>
+                <p>使用哈希表存储属性，更灵活但访问较慢。</p>
+                <pre><code>// 导致转换为字典属性的情况：
+const obj = {};
+obj.a = 1;
+obj.b = 2;
+delete obj.a;        // 删除属性 -> 可能转为字典模式
+
+// 或者添加大量属性
+for (let i = 0; i &lt; 1000; i++) {
+  obj["prop" + i] = i;  // 属性太多 -> 转为字典模式
+}</code></pre>
+                
+                <p><strong>生活类比</strong>：快速属性就像"固定座位"——每个人有固定的座位号，找人不费劲。字典属性就像"自由入座"——需要用名单查找，灵活性高但查找慢。</p>
+                
+                <div class="tip">
+                    <strong>源码位置</strong>：<br>
+                    - 属性存储：<a href="https://github.com/v8/v8/blob/main/src/objects/js-objects-inl.h" target="_blank">src/objects/js-objects-inl.h</a><br>
+                    - 命名字典：<a href="https://github.com/v8/v8/blob/main/src/objects/name-dictionary.h" target="_blank">src/objects/name-dictionary.h</a>
+                </div>
+                
+                <div class="summary">
+                    <strong>小结</strong>：V8 用隐藏类（Map）给动态对象赋予稳定结构，用 Tagged 指针高效区分整数和指针，用指针压缩节省内存，用不同类型的数组优化存储。这些技术共同让 JavaScript 对象既有灵活性又有高性能。
+                </div>
+            </section>
+            
+            <hr>
+
+            <section id="gc">
+                <h2>垃圾回收机制</h2>
+                <p>垃圾回收（Garbage Collection，简称 GC）是 V8 自动管理内存的核心机制。它负责识别不再使用的对象并回收其占用的内存。</p>
+                
+                <h3 id="generational">分代垃圾回收策略</h3>
+                <p>V8 采用<strong>分代垃圾回收</strong>策略，基于一个观察：<strong>大多数对象都是短命的</strong>。</p>
+                
+                <p><strong>生活类比</strong>：想象一个城市有两个区域：</p>
+                <ul>
+                    <li><strong>新城区（年轻代）</strong>：刚搬来的居民（新创建的对象）。很多人住几天就搬走了（对象很快变成垃圾）。</li>
+                    <li><strong>老城区（老年代）</strong>：住了很久的居民（存活时间长的对象）。这些人比较稳定，不太会搬走。</li>
+                </ul>
+                <p>城市的管理策略是：新城区经常检查（频繁 GC），老城区偶尔检查（不频繁 GC）。</p>
+                
+                <h4>年轻代（Young Generation）</h4>
+                <p>年轻代进一步分为两个子区域：</p>
+                
+                <div class="ascii-art">
+年轻代的半空间设计：
+
+┌─────────────────┐     ┌─────────────────┐
+│    From 空间     │     │     To 空间      │
+│  （存放对象）     │     │  （初始为空）     │
+│                 │     │                 │
+│  [obj1][obj2]   │     │                 │
+│  [obj3][obj4]   │     │                 │
+└─────────────────┘     └─────────────────┘
+       16MB                    16MB
+
+总年轻代大小：32MB（实际大小取决于配置）
+                </div>
+                
+                <p><strong>Scavenge 算法</strong>（副垃圾回收）：</p>
+                <ol>
+                    <li>新对象分配在 From 空间</li>
+                    <li>From 空间满时，触发 Scavenge</li>
+                    <li>遍历 From 空间，把存活对象复制到 To 空间</li>
+                    <li>交换 From 和 To 空间的角色</li>
+                </ol>
+                
+                <div class="ascii-art">
+Scavenge 过程可视化：
+
+Before:
+From: [obj1][obj2][obj3][obj4][obj5]
+       存活   死亡   存活   死亡   存活
+To:   [空]
+
+After:
+From: [空]
+To:   [obj1][obj3][obj5]
+       （存活对象被复制到 To 空间，紧凑排列）
+
+然后交换角色：
+From: [obj1][obj3][obj5]  &lt;- 新的分配从这里开始
+To:   [空]
+                </div>
+                
+                <p><strong>生活类比</strong>：Scavenge 就像"整理房间"。你把房间（From 空间）里要留的东西（存活对象）搬到隔壁空房间（To 空间），然后把原来的房间清空。下次整理时，两个房间的角色互换。</p>
+                
+                <h4>对象晋升</h4>
+                <p>如果一个对象在年轻代中经历了多次 Scavenge 仍然存活，它会被<strong>晋升</strong>到老年代。</p>
+                <pre><code>// 示例：对象晋升
+function createObject() {
+  return { data: new Array(1000) };
+}
+
+let obj = createObject();
+// obj 最初在年轻代
+
+// 经过多次 GC 后，如果 obj 仍然被引用...
+// obj 会被晋升到老年代</code></pre>
+                
+                <div class="tip">
+                    <strong>源码位置</strong>：<br>
+                    - Scavenger 实现：<a href="https://github.com/v8/v8/blob/main/src/heap/scavenger.cc" target="_blank">src/heap/scavenger.cc</a><br>
+                    - 年轻代管理：<a href="https://github.com/v8/v8/blob/main/src/heap/new-spaces.h" target="_blank">src/heap/new-spaces.h</a>
+                </div>
+                
+                <h4>老年代（Old Generation）</h4>
+                <p>老年代用于存储存活时间较长的对象。它的特点是：</p>
+                <ul>
+                    <li>空间比年轻代大得多（几百 MB 到几 GB）</li>
+                    <li>GC 频率低，但每次处理的对象多</li>
+                    <li>使用 Mark-Compact 算法</li>
+                </ul>
+                
+                <h3 id="mark-compact">Mark-Compact 算法</h3>
+                <p>Mark-Compact（标记-压缩）是老年代 GC 的核心算法，分为三个阶段：</p>
+                
+                <h4>阶段一：标记（Marking）</h4>
+                <p>找出所有存活的对象。</p>
+                
+                <p><strong>三色标记法</strong>：</p>
+                <ul>
+                    <li><strong>白色</strong>：尚未访问的对象（潜在的垃圾）</li>
+                    <li><strong>灰色</strong>：已发现但尚未处理的对象（需要检查其引用）</li>
+                    <li><strong>黑色</strong>：已处理完成的对象（确认存活）</li>
+                </ul>
+                
+                <div class="ascii-art">
+标记过程可视化：
+
+初始状态：
+┌─────────────────────────────────────┐
+│ 根对象 -> objA -> objB -> objC      │
+│            │                        │
+│            └────> objD              │
+│  objE（孤立）                        │
+│  objF（孤立）                        │
+└─────────────────────────────────────┘
+
+标记后：
+objA: 黑色（存活）
+objB: 黑色（存活）
+objC: 黑色（存活）
+objD: 黑色（存活）
+objE: 白色（垃圾）
+objF: 白色（垃圾）
+                </div>
+                
+                <p><strong>标记从根集合开始</strong>：</p>
+                <ul>
+                    <li>全局对象（window/globalThis）</li>
+                    <li>当前执行栈上的变量</li>
+                    <li>寄存器中的引用</li>
+                    <li>老年代到年轻代的引用</li>
+                </ul>
+                
+                <p><strong>生活类比</strong>：标记就像"疫情接触者追踪"。从已知感染者（根对象）开始，追踪所有接触过的人（引用对象），标记为"需要隔离"（存活）。没被追踪到的人（白色对象）就是安全的（可以被回收）。</p>
+                
+                <h4>阶段二：计算位置（Compute Locations）</h4>
+                <p>计算每个存活对象在压缩后应该存放的位置。</p>
+                <div class="ascii-art">
+压缩前：
+[存活][死亡][存活][死亡][死亡][存活]
+
+压缩后位置计算：
+[存活@pos0][死亡][存活@pos1][死亡][死亡][存活@pos2]
+                </div>
+                
+                <h4>阶段三：压缩（Compaction）</h4>
+                <p>将存活对象移动到计算出的新位置，消除内存碎片。</p>
+                <div class="ascii-art">
+压缩过程：
+
+Before:
+[ objA ][ free ][ objB ][ free ][ free ][ objC ]
+  100B    50B    80B     200B    100B    120B
+
+After:
+[ objA ][ objB ][ objC ][      free       ]
+  100B    80B    120B       350B
+
+所有存活对象紧凑排列在一端，
+另一端是连续的大块空闲内存
+                </div>
+                
+                <p><strong>生活类比</strong>：压缩就像"搬家整理"。你把散落在各处的家具（存活对象）搬到一起，腾出一整块空地（连续空闲内存），这样下次买新家具（分配对象）时更容易找到合适的位置。</p>
+                
+                <div class="tip">
+                    <strong>源码位置</strong>：<br>
+                    - Mark-Compact 实现：<a href="https://github.com/v8/v8/blob/main/src/heap/mark-compact.cc" target="_blank">src/heap/mark-compact.cc</a><br>
+                    - 标记器：<a href="https://github.com/v8/v8/blob/main/src/heap/marker.h" target="_blank">src/heap/marker.h</a>
+                </div>
+                
+                <h3 id="incremental">增量标记与并发回收</h3>
+                <p>传统的 GC 需要<strong>停止 JavaScript 执行</strong>（Stop-The-World），这会导致页面卡顿。V8 通过多种技术减少停顿时间。</p>
+                
+                <h4>增量标记（Incremental Marking）</h4>
+                <p>把标记过程拆分成多个小步骤，在 JavaScript 执行的间隙中进行。</p>
+                <div class="ascii-art">
+传统标记：
+JS 执行 ──────────────────►
+           │
+           ▼
+        [GC 标记]  &lt;- 长时间停顿
+           │
+           ▼
+JS 执行 ──────────────────►
+
+增量标记：
+JS 执行 ──► [GC 一小步] ──► JS 执行 ──► [GC 一小步] ──► JS 执行
+
+每次停顿很短，用户体验更好
+                </div>
+                
+                <p><strong>生活类比</strong>：增量标记就像"分批打扫"。传统方式是关门大扫除一整天（Stop-The-World），增量标记是每天打扫一点点，不影响正常营业。</p>
+                
+                <h4>并发标记（Concurrent Marking）</h4>
+                <p>让 GC 在后台线程中进行，JavaScript 主线程继续执行。</p>
+                <div class="ascii-art">
+并发标记：
+
+主线程:   JS ───────────────────────────►
+              │
+辅助线程:     GC ───────────────────────►
+              （同时进行！）
+                </div>
+                
+                <p><strong>挑战</strong>：JavaScript 主线程可能在 GC 标记的同时修改对象引用，导致标记不准确。</p>
+                
+                <p><strong>解决方案：写屏障（Write Barrier）</strong></p>
+                <p>当 JavaScript 修改对象引用时，写屏障会记录这个变化，确保 GC 不会遗漏存活对象。</p>
+                <pre><code>// 写屏障的概念（简化）
+// 源码位置：src/heap/heap-write-barrier.h
+
+void WriteBarrier(Object* object, Object* value) {
+  if (GCIsRunning &amp;&amp; ObjectIsInOldSpace(object) &amp;&amp; ObjectIsInNewSpace(value)) {
+    // 记录老年代到年轻代的新引用
+    RememberedSet::Insert(object, value);
+  }
+  *object = value;  // 实际写入
+}</code></pre>
+                
+                <p><strong>生活类比</strong>：写屏障就像"装修登记制度"。清洁工（GC）在打扫时，如果有人（JavaScript）搬了新家具（创建新引用），必须在门口登记（写屏障），这样清洁工就知道这个新家具也需要打扫。</p>
+                
+                <div class="tip">
+                    <strong>源码位置</strong>：<br>
+                    - 写屏障：<a href="https://github.com/v8/v8/blob/main/src/heap/heap-write-barrier.h" target="_blank">src/heap/heap-write-barrier.h</a><br>
+                    - 增量标记：<a href="https://github.com/v8/v8/blob/main/src/heap/incremental-marking.h" target="_blank">src/heap/incremental-marking.h</a><br>
+                    - 并发标记：<a href="https://github.com/v8/v8/blob/main/src/heap/concurrent-marking.h" target="_blank">src/heap/concurrent-marking.h</a>
+                </div>
+                
+                <h3 id="orinoco">Orinoco 垃圾回收器</h3>
+                <p>Orinoco 是 V8 垃圾回收器项目的代号，目标是让 GC 尽可能不阻塞主线程。</p>
+                
+                <h4>三种并行技术</h4>
+                <table>
+                    <tr>
+                        <th>技术</th>
+                        <th>说明</th>
+                        <th>主线程停顿</th>
+                    </tr>
+                    <tr>
+                        <td><strong>Parallel</strong></td>
+                        <td>主线程和辅助线程同时做相同的工作</td>
+                        <td>有停顿，但时间缩短</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Incremental</strong></td>
+                        <td>GC 工作拆分成小步骤，穿插在 JS 执行中</td>
+                        <td>多次短停顿</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Concurrent</strong></td>
+                        <td>GC 完全在后台线程执行</td>
+                        <td>几乎不停顿</td>
+                    </tr>
+                </table>
+                
+                <div class="ascii-art">
+Parallel GC:
+主线程:   [GC 工作] ───────►
+辅助线程: [GC 工作] ───────►
+          （同时做同样的标记工作）
+
+Incremental GC:
+主线程:   JS ──► [GC] ──► JS ──► [GC] ──► JS
+          （GC 和 JS 交替执行）
+
+Concurrent GC:
+主线程:   JS ───────────────────────────►
+辅助线程:     GC ───────────────────────►
+          （GC 完全在后台）
+                </div>
+                
+                <h4>当前 V8 GC 的状态</h4>
+                <ul>
+                    <li><strong>Scavenge（年轻代 GC）</strong>：使用并行 Scavenge，多个辅助线程同时复制存活对象</li>
+                    <li><strong>Mark-Compact（老年代 GC）</strong>：使用增量标记 + 并发标记 + 并行压缩</li>
+                    <li><strong>Major GC</strong>：大部分工作已移到后台线程</li>
+                </ul>
+                
+                <h3>GC 触发机制</h3>
+                <p>V8 在以下情况下触发垃圾回收：</p>
+                <ol>
+                    <li><strong>内存分配触发</strong>：当年轻代空间满时，触发 Scavenge</li>
+                    <li><strong>内存阈值触发</strong>：当老年代使用率达到一定百分比时，触发 Major GC</li>
+                    <li><strong>显式触发</strong>：通过 <code>gc()</code> 函数（仅在调试模式下可用）</li>
+                    <li><strong>空闲时触发</strong>：利用浏览器空闲时间进行 GC</li>
+                </ol>
+                
+                <pre><code>// 查看 GC 信息的 V8 标志（使用 d8 运行时）
+// d8 --trace-gc script.js
+
+// 示例输出：
+// [91ms] Scavenge 1.5 (3.0) -> 0.8 (3.0) MB, 0.8 ms
+// 表示：Scavenge 后，堆从 1.5MB 降到 0.8MB，耗时 0.8ms</code></pre>
+                
+                <div class="summary">
+                    <strong>小结</strong>：V8 使用分代 GC 策略，年轻代用 Scavenge（复制算法），老年代用 Mark-Compact（标记-压缩）。通过增量标记、并发标记和并行回收，V8 大幅减少了 GC 造成的停顿时间。
+                </div>
+            </section>
+            
+            <hr>
+            
+            <section id="memory">
+                <h2>内存管理方案</h2>
+                
+                <h3>堆内存布局</h3>
+                <p>V8 的堆是一个连续的虚拟地址空间，被划分为多个专门的区域（Space）：</p>
+                
+                <div class="ascii-art">
+V8 堆内存布局：
+
+┌─────────────────────────────────────────────────────────────┐
+│                        堆内存空间                             │
+├─────────────────────────────────────────────────────────────┤
+│  NewSpace（年轻代）                                          │
+│  ┌─────────────┬─────────────┐                               │
+│  │  From 空间   │   To 空间    │  &lt;- 各约 8-16MB              │
+│  └─────────────┴─────────────┘                               │
+├─────────────────────────────────────────────────────────────┤
+│  OldSpace（老年代）                                          │
+│  ┌─────────────────────────────────────────────────────┐     │
+│  │              长期存活的对象存储                       │     │
+│  │              （通常几百 MB 到几 GB）                  │     │
+│  └─────────────────────────────────────────────────────┘     │
+├─────────────────────────────────────────────────────────────┤
+│  CodeSpace（代码空间）                                        │
+│  ┌─────────────────────────────────────────────────────┐     │
+│  │              编译后的机器码                           │     │
+│  │              （需要可执行权限）                        │     │
+│  └─────────────────────────────────────────────────────┘     │
+├─────────────────────────────────────────────────────────────┤
+│  MapSpace（Map 空间）                                        │
+│  ┌─────────────────────────────────────────────────────┐     │
+│  │              隐藏类（Map）对象                        │     │
+│  │              （V8 中数量很多且重要）                   │     │
+│  └─────────────────────────────────────────────────────┘     │
+├─────────────────────────────────────────────────────────────┤
+│  LargeObjectSpace（大对象空间）                               │
+│  ┌─────────────────────────────────────────────────────┐     │
+│  │              超过大小阈值的大对象                     │     │
+│  │              （大数组、大字符串等）                    │     │
+│  └─────────────────────────────────────────────────────┘     │
+└─────────────────────────────────────────────────────────────┘
+                </div>
+                
+                <p><strong>生活类比</strong>：堆内存就像一个大型购物中心，不同类型的店铺（Space）卖不同的商品（存储不同类型的数据）：</p>
+                <ul>
+                    <li><strong>NewSpace</strong> = 快闪店（临时存放，经常更新）</li>
+                    <li><strong>OldSpace</strong> = 老字号（长期经营，稳定）</li>
+                    <li><strong>CodeSpace</strong> = 电影院（需要特殊权限才能进入）</li>
+                    <li><strong>MapSpace</strong> = 物业管理处（存放所有店铺的布局图）</li>
+                    <li><strong>LargeObjectSpace</strong> = 大型展厅（需要特殊的大空间）</li>
+                </ul>
+                
+                <div class="tip">
+                    <strong>源码位置</strong>：<br>
+                    - 堆定义：<a href="https://github.com/v8/v8/blob/main/src/heap/heap.h" target="_blank">src/heap/heap.h</a><br>
+                    - 空间管理：<a href="https://github.com/v8/v8/blob/main/src/heap/spaces.h" target="_blank">src/heap/spaces.h</a>
+                </div>
+                
+                <h3>Zone 内存管理</h3>
+                <p><strong>Zone</strong> 是 V8 中用于短期内存分配的高效机制。</p>
+                
+                <div class="card">
+                    <h4>特点</h4>
+                    <ul>
+                        <li>分配极快（只需移动指针）</li>
+                        <li>不支持单独释放单个对象</li>
+                        <li>整个 Zone 销毁时一次性释放所有内存</li>
+                    </ul>
+                </div>
+                
+                <p><strong>使用场景</strong>：</p>
+                <ul>
+                    <li>Parser 解析时产生的 AST 节点</li>
+                    <li>BytecodeGenerator 生成的临时数据结构</li>
+                    <li>TurboFan 编译时的中间表示（IR）节点</li>
+                </ul>
+                
+                <div class="ascii-art">
+Zone 的 Bump Pointer 分配：
+
+Zone 内存块：
+┌─────────────────────────────────────────────────────┐
+│ 已分配 │ 已分配 │ 已分配 │  空闲内存                │
+│        │        │        │  ▲                       │
+│        │        │        │  │                       │
+│        │        │        │ Bump Pointer              │
+└─────────────────────────────────────────────────────┘
+
+分配新对象：只需把 Bump Pointer 向前移动
+                </div>
+                
+                <p><strong>生活类比</strong>：Zone 就像"一次性餐盒"。你吃饭时（编译过程）把食物放在餐盒里，吃完后（编译完成）直接把整个餐盒扔掉，不需要一个个清洗碗碟。</p>
+                
+                <div class="tip">
+                    <strong>源码位置</strong>：<a href="https://github.com/v8/v8/blob/main/src/zone/zone.h" target="_blank">src/zone/zone.h</a>
+                </div>
+                
+                <h3>内存分配器</h3>
+                
+                <h4>年轻代分配：Bump Pointer</h4>
+                <p>年轻代使用最简单的分配方式——移动指针：</p>
+                <pre><code>// Bump Pointer 分配（概念性代码）
+// 源码位置：src/heap/new-spaces-inl.h
+
+Address BumpPointerAllocator::Allocate(int size) {
+  Address new_top = top_ + size;
+  if (new_top &lt;= limit_) {
+    Address result = top_;
+    top_ = new_top;  // 只需移动指针！
+    return result;
+  }
+  // 空间不足，触发 Scavenge
+  return SlowAllocate(size);
+}</code></pre>
+                
+                <p><strong>生活类比</strong>：Bump Pointer 就像"停车场自动计时器"。每来一辆车（分配对象），计时器自动向前拨（移动指针），不需要找空位（搜索空闲列表）。</p>
+                
+                <h4>老年代分配：FreeList</h4>
+                <p>老年代使用 FreeList（空闲列表）管理内存：</p>
+                <div class="ascii-art">
+FreeList 结构：
+
+按大小分类的空闲块：
+┌─────────────┐
+│  8 字节列表  │ -> [free_8b] -> [free_8b] -> null
+├─────────────┤
+│ 16 字节列表  │ -> [free_16b] -> null
+├─────────────┤
+│ 32 字节列表  │ -> [free_32b] -> [free_32b] -> [free_32b] -> null
+├─────────────┤
+│ ...         │
+├─────────────┤
+│ 大对象列表   │ -> [free_large] -> null
+└─────────────┘
+
+分配时根据大小查找合适的空闲块
+                </div>
+                
+                <div class="tip">
+                    <strong>源码位置</strong>：<br>
+                    - FreeList：<a href="https://github.com/v8/v8/blob/main/src/heap/free-list.h" target="_blank">src/heap/free-list.h</a><br>
+                    - 内存分配：<a href="https://github.com/v8/v8/blob/main/src/heap/heap-inl.h" target="_blank">src/heap/heap-inl.h</a>
+                </div>
+                
+                <h3>页和块管理</h3>
+                <p>V8 的堆内存被划分为固定大小的<strong>页（Page）</strong>，通常是 1MB 或更大。</p>
+                
+                <div class="ascii-art">
+页的结构：
+
+┌─────────────────────────────────────────────────────┐
+│ 页头（Page Header）                                   │
+│  ┌───────────────────────────────────────────────┐  │
+│  │ 所属空间 │ 页类型 │ 对象信息 │ 标记位图指针      │  │
+│  └───────────────────────────────────────────────┘  │
+├─────────────────────────────────────────────────────┤
+│                  对象存储区域                          │
+│  ┌─────────┬─────────┬─────────┬─────────────────┐  │
+│  │ 对象 1  │ 对象 2  │ 空闲    │ 对象 3          │  │
+│  └─────────┴─────────┴─────────┴─────────────────┘  │
+├─────────────────────────────────────────────────────┤
+│ 标记位图（Marking Bitmap）                            │
+│  每个对象对应一个位：1 = 存活，0 = 死亡                │
+└─────────────────────────────────────────────────────┘
+                </div>
+                
+                <p><strong>MemoryChunk</strong> 是页头的抽象，包含了页管理所需的各种信息。不同类型的空间使用不同的 MemoryChunk 子类。</p>
+                
+                <div class="tip">
+                    <strong>源码位置</strong>：<br>
+                    - MemoryChunk：<a href="https://github.com/v8/v8/blob/main/src/heap/memory-chunk.h" target="_blank">src/heap/memory-chunk.h</a><br>
+                    - 页管理：<a href="https://github.com/v8/v8/blob/main/src/heap/page.h" target="_blank">src/heap/page.h</a>
+                </div>
+                
+                <div class="summary">
+                    <strong>小结</strong>：V8 的内存管理是一个精密的系统。年轻代用 Bump Pointer 快速分配，老年代用 FreeList 灵活管理。Zone 用于编译期的临时内存，各种专用 Space 让不同类型的数据各得其所。
+                </div>
+            </section>
+            
+            <hr>
+
+            <section id="core-tech">
+                <h2>核心技术点详解</h2>
+                
+                <h3>内联缓存（Inline Cache，IC）</h3>
+                <p>内联缓存是 V8 实现高效动态语言执行的<strong>核心技术</strong>。</p>
+                
+                <h4>问题背景</h4>
+                <p>JavaScript 是动态类型语言，对象的属性可以随时增删。理论上，每次访问属性都需要：</p>
+                <ol>
+                    <li>查找对象的隐藏类</li>
+                    <li>在隐藏类中查找属性名</li>
+                    <li>获取属性偏移量</li>
+                    <li>读取内存</li>
+                </ol>
+                <p>这个过程很慢！</p>
+                
+                <h4>内联缓存的解决方案</h4>
+                <p><strong>核心思想</strong>：记录曾经见过的对象类型和属性访问模式，下次直接复用。</p>
+                <p><strong>生活类比</strong>：内联缓存就像"快递柜取件"。第一次去某个小区送快递，你需要查地图、找楼号、问门卫（完整查找）。但 V8 会把路线记下来（缓存），下次再去就直接走（快速访问）。</p>
+                
+                <h4>IC 的工作流程</h4>
+                <pre><code>// 示例代码
+function getName(obj) {
+  return obj.name;
+}
+
+const p1 = { name: "Alice", age: 25 };
+const p2 = { name: "Bob", age: 30 };
+const p3 = { name: "Charlie" };  // 不同的隐藏类！
+
+// 第一次调用 getName(p1)
+// IC 状态：UNINITIALIZED（未初始化）
+// 执行完整查找，记录：MapA -> name 在偏移量 0
+// IC 状态变为：MONOMORPHIC（单态）
+
+// 第二次调用 getName(p2)
+// IC 检查：p2 的 Map 也是 MapA！
+// 直接读取偏移量 0，跳过查找！
+
+// 第三次调用 getName(p3)
+// IC 检查：p3 的 Map 是 MapB（不同！）
+// 执行完整查找，记录 MapB -> name 在偏移量 0
+// IC 状态变为：POLYMORPHIC（多态，最多 4 个）
+
+// 如果更多不同的 Map 出现...
+// IC 状态变为：MEGAMORPHIC（巨态，不再缓存）</code></pre>
+                
+                <h4>IC 的四种状态</h4>
+                <div class="ascii-art">
+IC 状态转换图：
+
+UNINITIALIZED（未初始化）
+       │
+       │ 第一次访问
+       ▼
+  MONOMORPHIC（单态）  &lt;- 只见过一种类型，最快！
+       │
+       │ 遇到不同类型
+       ▼
+ POLYMORPHIC（多态）   &lt;- 见过 2-4 种类型，查小表
+       │
+       │ 类型超过 4 种
+       ▼
+MEGAMORPHIC（巨态）    &lt;- 太多类型，放弃缓存，最慢
+                </div>
+                
+                <table>
+                    <tr>
+                        <th>状态</th>
+                        <th>说明</th>
+                        <th>性能</th>
+                    </tr>
+                    <tr>
+                        <td><strong>UNINITIALIZED</strong></td>
+                        <td>尚未执行</td>
+                        <td>N/A</td>
+                    </tr>
+                    <tr>
+                        <td><strong>MONOMORPHIC</strong></td>
+                        <td>只见过一种隐藏类</td>
+                        <td>最快（直接内存访问）</td>
+                    </tr>
+                    <tr>
+                        <td><strong>POLYMORPHIC</strong></td>
+                        <td>见过 2-4 种隐藏类</td>
+                        <td>较快（查表）</td>
+                    </tr>
+                    <tr>
+                        <td><strong>MEGAMORPHIC</strong></td>
+                        <td>见过太多隐藏类</td>
+                        <td>最慢（完整查找）</td>
+                    </tr>
+                </table>
+                
+                <h4>FeedbackVector 中的 IC 信息</h4>
+                <pre><code>// 反馈向量的结构（简化）
+// 源码位置：src/objects/feedback-vector.h
+
+class FeedbackVector : public HeapObject {
+  // 函数被调用次数
+  int invocation_count();
+  
+  // 优化状态标记
+  OptimizationMarker optimization_marker();
+  
+  // 反馈槽位数组
+  // 每个需要反馈的操作（属性访问、函数调用等）对应一个槽位
+  MaybeObjectSlot slots();
+};
+
+// 属性访问的 IC 状态存储在反馈槽位中
+// 包括：隐藏类指针、属性偏移量、访问类型等</code></pre>
+                
+                <div class="tip">
+                    <strong>源码位置</strong>：<br>
+                    - IC 系统：<a href="https://github.com/v8/v8/tree/main/src/ic" target="_blank">src/ic/</a> 目录<br>
+                    - IC 存根生成：<a href="https://github.com/v8/v8/blob/main/src/ic/ic.cc" target="_blank">src/ic/ic.cc</a><br>
+                    - 反馈向量：<a href="https://github.com/v8/v8/blob/main/src/objects/feedback-vector.h" target="_blank">src/objects/feedback-vector.h</a>
+                </div>
+                
+                <h3>优化与去优化机制</h3>
+                
+                <h4>投机性优化</h4>
+                <p>TurboFan 的优化基于<strong>假设</strong>：代码会按照特定的方式运行。</p>
+                <pre><code>function add(x, y) {
+  return x + y;
+}
+
+// 假设反馈显示 x 和 y 总是整数
+// TurboFan 生成专门的整数加法代码：
+
+// 优化后的伪代码：
+// 1. 检查 x 是 Smi
+// 2. 检查 y 是 Smi
+// 3. 执行整数加法
+// 4. 检查溢出（如果溢出，降级为浮点加法）
+// 5. 返回结果
+
+// 如果所有检查通过，执行非常快！
+// 如果检查失败（如传入字符串），触发去优化</code></pre>
+                
+                <h4>去优化（Deoptimization）</h4>
+                <p>当优化假设失败时，V8 需要"回退"到未优化的代码。</p>
+                <p><strong>生活类比</strong>：去优化就像"备用方案"。你计划开车去机场（优化路线），但遇到堵车（假设失败），于是切换坐地铁（回退到解释执行）。虽然慢一点，但能保证到达。</p>
+                
+                <div class="ascii-art">
+去优化过程：
+
+1. 检测到假设失败（如类型不匹配）
+       │
+       ▼
+2. 暂停优化代码的执行
+       │
+       ▼
+3. 从优化代码的当前位置，映射回字节码位置
+       │
+       ▼
+4. 恢复解释执行的状态（寄存器、栈帧等）
+       │
+       ▼
+5. 回到 Ignition 解释执行
+       │
+       ▼
+6. 重新收集反馈信息
+       │
+       ▼
+7. 可能再次触发优化（这次用更保守的假设）
+                </div>
+                
+                <h4>Bailout</h4>
+                <p>Bailout 是去优化的一种较轻量级形式。与完全回退到 Ignition 不同，Bailout 可能只是放弃某些激进优化，而不是完全重新开始。</p>
+                
+                <div class="tip">
+                    <strong>源码位置</strong>：<br>
+                    - 去优化器：<a href="https://github.com/v8/v8/tree/main/src/deoptimizer" target="_blank">src/deoptimizer/</a> 目录<br>
+                    - 去优化入口：<a href="https://github.com/v8/v8/blob/main/src/deoptimizer/deoptimizer.cc" target="_blank">src/deoptimizer/deoptimizer.cc</a>
+                </div>
+                
+                <h3>WebAssembly 支持</h3>
+                <p>V8 不仅支持 JavaScript，还支持 <strong>WebAssembly（Wasm）</strong>。</p>
+                
+                <h4>Wasm 编译流水线</h4>
+                <div class="ascii-art">
+Wasm 字节码
+    │
+    ▼
+[Wasm Decoder] 解码和验证
+    │
+    ▼
+[Turboshaft] 中间表示（与 JavaScript 共享后端）
+    │
+    ▼
+[代码生成] 机器码
+    │
+    ▼
+  执行
+                </div>
+                
+                <p><strong>生活类比</strong>：Wasm 就像"国际通用说明书"。JavaScript 是中文说明书，Wasm 是图标说明书。V8 能把两种说明书都翻译成机器能懂的语言。</p>
+                
+                <h4>Liftoff 基线编译器</h4>
+                <p>V8 使用 <strong>Liftoff</strong> 作为 Wasm 的基线编译器，类似于 JavaScript 的 Sparkplug。</p>
+                
+                <div class="tip">
+                    <strong>源码位置</strong>：<br>
+                    - Wasm 引擎：<a href="https://github.com/v8/v8/tree/main/src/wasm" target="_blank">src/wasm/</a> 目录<br>
+                    - Liftoff：<a href="https://github.com/v8/v8/blob/main/src/wasm/baseline/liftoff-compiler.cc" target="_blank">src/wasm/baseline/liftoff-compiler.cc</a>
+                </div>
+                
+                <div class="summary">
+                    <strong>小结</strong>：内联缓存让属性访问从"查字典"变成"直接读取"。TurboFan 的投机性优化像"有根据的猜测"，猜对了飞快，猜错了就回退。Wasm 让 V8 成为双语言引擎。
+                </div>
+            </section>
+            
+            <hr>
+            
+            <section id="optimization">
+                <h2>性能优化建议</h2>
+                <p>了解 V8 的内部机制后，我们可以写出对 V8 更友好的 JavaScript 代码。</p>
+                
+                <h3>1. 隐藏类优化</h3>
+                <p><strong>保持对象结构一致</strong>：</p>
+                <pre><code>// ❌ 不好的做法：动态添加属性
+function createUser(name, age) {
+  const user = {};
+  user.name = name;  // 创建隐藏类 1
+  user.age = age;    // 转换到隐藏类 2
+  return user;
+}
+
+// ✅ 好的做法：在构造函数中初始化所有属性
+function createUser(name, age) {
+  const user = {
+    name: name,   // 直接创建完整的隐藏类
+    age: age
+  };
+  return user;
+}
+
+// ✅ 更好的做法：使用 class（语义更清晰）
+class User {
+  constructor(name, age) {
+    this.name = name;
+    this.age = age;
+  }
+}</code></pre>
+                
+                <p><strong>避免删除属性</strong>：</p>
+                <pre><code>// ❌ 不好的做法：删除属性会导致转为字典模式
+const obj = { name: "Alice", age: 25 };
+delete obj.age;  // 转为字典模式，访问变慢
+
+// ✅ 好的做法：设置为 null 或 undefined
+obj.age = undefined;  // 保持快速属性模式</code></pre>
+                
+                <h3>2. 类型稳定性</h3>
+                <p><strong>保持函数参数类型一致</strong>：</p>
+                <pre><code>// ❌ 不好的做法：参数类型不稳定
+function add(x, y) {
+  return x + y;
+}
+
+add(1, 2);        // 整数
+add("a", "b");    // 字符串 -> 去优化！
+add(1.5, 2.5);    // 浮点数 -> 再次去优化！
+
+// ✅ 好的做法：参数类型稳定
+function addNumbers(x, y) {
+  return x + y;
+}
+
+function concatStrings(x, y) {
+  return x + y;
+}</code></pre>
+                
+                <h3>3. 数组优化</h3>
+                <p><strong>使用固定类型的数组</strong>：</p>
+                <pre><code>// ❌ 不好的做法：混合类型
+const arr = [1, 2, 3];
+arr.push(1.5);     // 从 Smi 数组转为 Double 数组
+arr.push("hello"); // 转为通用数组（最慢）
+
+// ✅ 好的做法：保持类型一致
+const intArr = [1, 2, 3, 4, 5];           // PACKED_SMI_ELEMENTS
+const doubleArr = [1.1, 2.2, 3.3];        // PACKED_DOUBLE_ELEMENTS
+const strArr = ["a", "b", "c"];           // PACKED_ELEMENTS
+
+// ✅ 更好的做法：使用 TypedArray（如果需要数值计算）
+const floatArr = new Float64Array(100);   // 最高效的数值存储</code></pre>
+                
+                <p><strong>避免稀疏数组</strong>：</p>
+                <pre><code>// ❌ 不好的做法：创建稀疏数组
+const arr = [];
+arr[0] = 1;
+arr[1000] = 2;  // 变成 HOLEY_ELEMENTS（稀疏）
+
+// ✅ 好的做法：预分配或保持连续
+const arr = new Array(100);
+for (let i = 0; i &lt; 100; i++) {
+  arr[i] = i;
+}</code></pre>
+                
+                <h3>4. 函数优化</h3>
+                <p><strong>避免 arguments 对象</strong>：</p>
+                <pre><code>// ❌ 不好的做法：使用 arguments
+function sum() {
+  let total = 0;
+  for (let i = 0; i &lt; arguments.length; i++) {
+    total += arguments[i];
+  }
+  return total;
+}
+
+// ✅ 好的做法：使用剩余参数
+function sum(...numbers) {
+  let total = 0;
+  for (const n of numbers) {
+    total += n;
+  }
+  return total;
+}</code></pre>
+                
+                <p><strong>避免 try-catch 中的热点代码</strong>：</p>
+                <pre><code>// ❌ 不好的做法：try-catch 阻止优化
+function hotFunction() {
+  try {
+    // 热点代码在这里无法被 TurboFan 优化
+  } catch (e) {
+    // ...
+  }
+}
+
+// ✅ 好的做法：把热点代码提取出来
+function optimizedPart() {
+  // 热点代码可以被优化
+}
+
+function hotFunction() {
+  try {
+    optimizedPart();
+  } catch (e) {
+    // ...
+  }
+}</code></pre>
+                
+                <h3>5. 内存优化</h3>
+                <p><strong>及时解除引用</strong>：</p>
+                <pre><code>// 处理大量数据后，及时释放引用
+function processLargeData() {
+  const hugeArray = new Array(1000000);
+  // ... 处理数据
+  
+  // 处理完成后，解除引用让 GC 回收
+  return;  // hugeArray 离开作用域，可以被回收
+}
+
+// 对于全局变量，手动解除引用
+let cache = { /* 大量数据 */ };
+// 使用完毕后
+cache = null;  // 允许 GC 回收</code></pre>
+                
+                <p><strong>使用对象池</strong>：</p>
+                <pre><code>// 对于频繁创建和销毁的小对象，使用对象池
+class ObjectPool {
+  constructor(factory, size = 100) {
+    this.factory = factory;
+    this.available = Array.from({ length: size }, () => factory());
+    this.inUse = new Set();
+  }
+  
+  acquire() {
+    let obj = this.available.pop();
+    if (!obj) obj = this.factory();
+    this.inUse.add(obj);
+    return obj;
+  }
+  
+  release(obj) {
+    if (this.inUse.has(obj)) {
+      this.inUse.delete(obj);
+      this.available.push(obj);
+    }
+  }
+}</code></pre>
+                
+                <div class="summary">
+                    <strong>小结</strong>：写出 V8 友好的代码，关键是<strong>保持类型稳定</strong>和<strong>对象结构一致</strong>。避免动态增删属性、混合数组类型、以及不稳定的函数参数类型。
+                </div>
+            </section>
+            
+            <hr>
+            
+            <section id="learning">
+                <h2>学习路径与建议</h2>
+                
+                <h3>推荐的源代码阅读顺序</h3>
+                <p>对于希望深入 V8 源代码的开发者，建议按照以下顺序：</p>
+                
+                <h4>第一阶段：建立整体认知（1-2 周）</h4>
+                <ol>
+                    <li><a href="https://github.com/v8/v8/blob/main/src/d8/d8.cc" target="_blank"><strong>src/d8/d8.cc</strong></a>
+                        <ul>
+                            <li>V8 的 Shell 程序，可以交互式执行 JavaScript</li>
+                            <li>了解 V8 的基本使用方式和 API</li>
+                        </ul>
+                    </li>
+                    <li><a href="https://github.com/v8/v8/blob/main/src/api/api.cc" target="_blank"><strong>src/api/api.cc</strong></a>
+                        <ul>
+                            <li>V8 对外暴露的 C++ API</li>
+                            <li>了解如何嵌入 V8 到应用程序</li>
+                        </ul>
+                    </li>
+                    <li><a href="https://github.com/v8/v8/blob/main/src/execution/isolate.cc" target="_blank"><strong>src/execution/isolate.cc</strong></a>
+                        <ul>
+                            <li>Isolate 的创建和初始化</li>
+                            <li>理解 V8 的执行环境</li>
+                        </ul>
+                    </li>
+                </ol>
+                
+                <h4>第二阶段：理解对象系统（2-3 周）</h4>
+                <ol>
+                    <li><a href="https://github.com/v8/v8/blob/main/src/objects/objects.h" target="_blank"><strong>src/objects/objects.h</strong></a>
+                        <ul>
+                            <li>V8 所有对象的基类定义</li>
+                            <li>理解对象模型</li>
+                        </ul>
+                    </li>
+                    <li><a href="https://github.com/v8/v8/blob/main/src/objects/map.h" target="_blank"><strong>src/objects/map.h</strong></a>
+                        <ul>
+                            <li>隐藏类（Map）的定义</li>
+                            <li>理解形状系统</li>
+                        </ul>
+                    </li>
+                    <li><a href="https://github.com/v8/v8/blob/main/src/objects/descriptor-array.h" target="_blank"><strong>src/objects/descriptor-array.h</strong></a>
+                        <ul>
+                            <li>描述符数组</li>
+                            <li>理解属性存储</li>
+                        </ul>
+                    </li>
+                </ol>
+                
+                <h4>第三阶段：理解编译系统（3-4 周）</h4>
+                <ol>
+                    <li><a href="https://github.com/v8/v8/blob/main/src/interpreter/bytecodes.h" target="_blank"><strong>src/interpreter/bytecodes.h</strong></a>
+                        <ul>
+                            <li>字节码指令定义</li>
+                            <li>了解 Ignition 的指令集</li>
+                        </ul>
+                    </li>
+                    <li><a href="https://github.com/v8/v8/blob/main/src/interpreter/bytecode-generator.cc" target="_blank"><strong>src/interpreter/bytecode-generator.cc</strong></a>
+                        <ul>
+                            <li>字节码生成器</li>
+                            <li>理解 AST 到字节码的转换</li>
+                        </ul>
+                    </li>
+                    <li><a href="https://github.com/v8/v8/tree/main/src/maglev" target="_blank"><strong>src/maglev/</strong></a>
+                        <ul>
+                            <li>Maglev 编译器</li>
+                            <li>理解中层优化</li>
+                        </ul>
+                    </li>
+                    <li><a href="https://github.com/v8/v8/tree/main/src/compiler" target="_blank"><strong>src/compiler/</strong></a>
+                        <ul>
+                            <li>TurboFan 编译器</li>
+                            <li>理解深度优化</li>
+                        </ul>
+                    </li>
+                </ol>
+                
+                <h4>第四阶段：理解内存管理（2-3 周）</h4>
+                <ol>
+                    <li><a href="https://github.com/v8/v8/blob/main/src/heap/heap.cc" target="_blank"><strong>src/heap/heap.cc</strong></a>
+                        <ul>
+                            <li>堆管理的核心</li>
+                            <li>理解内存布局</li>
+                        </ul>
+                    </li>
+                    <li><a href="https://github.com/v8/v8/blob/main/src/heap/scavenger.cc" target="_blank"><strong>src/heap/scavenger.cc</strong></a>
+                        <ul>
+                            <li>年轻代 GC</li>
+                            <li>理解 Scavenge 算法</li>
+                        </ul>
+                    </li>
+                    <li><a href="https://github.com/v8/v8/blob/main/src/heap/mark-compact.cc" target="_blank"><strong>src/heap/mark-compact.cc</strong></a>
+                        <ul>
+                            <li>老年代 GC</li>
+                            <li>理解 Mark-Compact 算法</li>
+                        </ul>
+                    </li>
+                </ol>
+                
+                <h3>关键源代码速查表</h3>
+                <table>
+                    <tr>
+                        <th>功能</th>
+                        <th>文件路径</th>
+                        <th>GitHub 链接</th>
+                    </tr>
+                    <tr>
+                        <td>词法分析器</td>
+                        <td>src/parsing/scanner.cc</td>
+                        <td><a href="https://github.com/v8/v8/blob/main/src/parsing/scanner.cc" target="_blank">链接</a></td>
+                    </tr>
+                    <tr>
+                        <td>语法分析器</td>
+                        <td>src/parsing/parser.cc</td>
+                        <td><a href="https://github.com/v8/v8/blob/main/src/parsing/parser.cc" target="_blank">链接</a></td>
+                    </tr>
+                    <tr>
+                        <td>AST 定义</td>
+                        <td>src/ast/ast.h</td>
+                        <td><a href="https://github.com/v8/v8/blob/main/src/ast/ast.h" target="_blank">链接</a></td>
+                    </tr>
+                    <tr>
+                        <td>字节码定义</td>
+                        <td>src/interpreter/bytecodes.h</td>
+                        <td><a href="https://github.com/v8/v8/blob/main/src/interpreter/bytecodes.h" target="_blank">链接</a></td>
+                    </tr>
+                    <tr>
+                        <td>解释器</td>
+                        <td>src/interpreter/interpreter.cc</td>
+                        <td><a href="https://github.com/v8/v8/blob/main/src/interpreter/interpreter.cc" target="_blank">链接</a></td>
+                    </tr>
+                    <tr>
+                        <td>Sparkplug</td>
+                        <td>src/baseline/baseline-compiler.cc</td>
+                        <td><a href="https://github.com/v8/v8/blob/main/src/baseline/baseline-compiler.cc" target="_blank">链接</a></td>
+                    </tr>
+                    <tr>
+                        <td>Maglev</td>
+                        <td>src/maglev/maglev-compiler.cc</td>
+                        <td><a href="https://github.com/v8/v8/blob/main/src/maglev/maglev-compiler.cc" target="_blank">链接</a></td>
+                    </tr>
+                    <tr>
+                        <td>TurboFan</td>
+                        <td>src/compiler/pipeline.cc</td>
+                        <td><a href="https://github.com/v8/v8/blob/main/src/compiler/pipeline.cc" target="_blank">链接</a></td>
+                    </tr>
+                    <tr>
+                        <td>Turboshaft</td>
+                        <td>src/compiler/turboshaft/</td>
+                        <td><a href="https://github.com/v8/v8/tree/main/src/compiler/turboshaft" target="_blank">链接</a></td>
+                    </tr>
+                    <tr>
+                        <td>隐藏类</td>
+                        <td>src/objects/map.h</td>
+                        <td><a href="https://github.com/v8/v8/blob/main/src/objects/map.h" target="_blank">链接</a></td>
+                    </tr>
+                    <tr>
+                        <td>对象定义</td>
+                        <td>src/objects/js-objects.h</td>
+                        <td><a href="https://github.com/v8/v8/blob/main/src/objects/js-objects.h" target="_blank">链接</a></td>
+                    </tr>
+                    <tr>
+                        <td>Smi</td>
+                        <td>src/objects/smi.h</td>
+                        <td><a href="https://github.com/v8/v8/blob/main/src/objects/smi.h" target="_blank">链接</a></td>
+                    </tr>
+                    <tr>
+                        <td>堆管理</td>
+                        <td>src/heap/heap.cc</td>
+                        <td><a href="https://github.com/v8/v8/blob/main/src/heap/heap.cc" target="_blank">链接</a></td>
+                    </tr>
+                    <tr>
+                        <td>Scavenge</td>
+                        <td>src/heap/scavenger.cc</td>
+                        <td><a href="https://github.com/v8/v8/blob/main/src/heap/scavenger.cc" target="_blank">链接</a></td>
+                    </tr>
+                    <tr>
+                        <td>Mark-Compact</td>
+                        <td>src/heap/mark-compact.cc</td>
+                        <td><a href="https://github.com/v8/v8/blob/main/src/heap/mark-compact.cc" target="_blank">链接</a></td>
+                    </tr>
+                    <tr>
+                        <td>内联缓存</td>
+                        <td>src/ic/ic.cc</td>
+                        <td><a href="https://github.com/v8/v8/blob/main/src/ic/ic.cc" target="_blank">链接</a></td>
+                    </tr>
+                    <tr>
+                        <td>反馈向量</td>
+                        <td>src/objects/feedback-vector.h</td>
+                        <td><a href="https://github.com/v8/v8/blob/main/src/objects/feedback-vector.h" target="_blank">链接</a></td>
+                    </tr>
+                    <tr>
+                        <td>去优化</td>
+                        <td>src/deoptimizer/deoptimizer.cc</td>
+                        <td><a href="https://github.com/v8/v8/blob/main/src/deoptimizer/deoptimizer.cc" target="_blank">链接</a></td>
+                    </tr>
+                    <tr>
+                        <td>Wasm</td>
+                        <td>src/wasm/</td>
+                        <td><a href="https://github.com/v8/v8/tree/main/src/wasm" target="_blank">链接</a></td>
+                    </tr>
+                    <tr>
+                        <td>内置函数</td>
+                        <td>src/builtins/</td>
+                        <td><a href="https://github.com/v8/v8/tree/main/src/builtins" target="_blank">链接</a></td>
+                    </tr>
+                </table>
+                
+                <h3>学习资源推荐</h3>
+                
+                <h4>必读文章</h4>
+                <ol>
+                    <li><a href="https://v8.dev/blog" target="_blank"><strong>V8 博客</strong></a> - V8 团队的官方博客，包含最新的优化技术和架构变更</li>
+                    <li><a href="https://v8.dev/docs/ignition" target="_blank"><strong>Ignition 设计文档</strong></a> - 解释器架构详解</li>
+                    <li><a href="https://v8.dev/blog/maglev" target="_blank"><strong>Maglev 介绍</strong></a> - 中间层编译器的设计</li>
+                    <li><a href="https://v8.dev/blog/leaving-the-sea-of-nodes" target="_blank"><strong>Leaving the Sea of Nodes</strong></a> - TurboFan 的演进</li>
+                    <li><a href="https://v8.dev/blog/trash-talk" target="_blank"><strong>Trash Talk: Orinoco GC</strong></a> - 垃圾回收器详解</li>
+                    <li><a href="https://v8.dev/docs/hidden-classes" target="_blank"><strong>Hidden Classes</strong></a> - 隐藏类深度解析</li>
+                </ol>
+                
+                <h4>前置知识</h4>
+                <ul>
+                    <li><strong>C++ 基础</strong>：V8 核心代码全部使用 C++ 编写</li>
+                    <li><strong>编译器原理</strong>：了解词法分析、语法分析、IR、优化等概念</li>
+                    <li><strong>计算机体系结构</strong>：了解 CPU、内存层次、缓存等</li>
+                    <li><strong>操作系统</strong>：了解虚拟内存、线程、同步等</li>
+                </ul>
+                
+                <h4>实践建议</h4>
+                <ol>
+                    <li><strong>编译 V8</strong>：按照 <a href="https://v8.dev/docs/build" target="_blank">官方文档</a> 编译 V8，使用 d8 交互式执行 JavaScript</li>
+                    <li><strong>使用调试标志</strong>：
+                        <pre><code>// 打印生成的字节码
+d8 --print-bytecode script.js
+
+// 打印优化的机器码
+d8 --print-opt-code script.js
+
+// 跟踪 GC
+d8 --trace-gc script.js
+
+// 查看隐藏类信息
+d8 --allow-natives-syntax --trace-maps script.js</code></pre>
+                    </li>
+                    <li><strong>阅读测试用例</strong>：V8 的测试用例是最好的学习材料，位于 <code>test/</code> 目录</li>
+                </ol>
+                
+                <div class="summary">
+                    <strong>小结</strong>：学习 V8 是一个循序渐进的过程。建议从简单的模块开始，逐步深入。多动手实验，多使用调试工具，多阅读官方博客。
+                </div>
+            </section>
+            
+            <hr>
+            
+            <section id="summary">
+                <h2>总结</h2>
+                
+                <p>V8 是现代 JavaScript 引擎的杰出代表，其设计融合了众多先进的编译技术和系统优化策略。</p>
+                
+                <h3>核心架构回顾</h3>
+                <div class="ascii-art">
+JavaScript 代码的执行之旅：
+
+源代码
+  │
+  ▼
+[Parser] -> AST
+  │
+  ▼
+[BytecodeGenerator] -> 字节码
+  │
+  ├──► [Ignition] 解释执行 + 收集反馈
+  │
+  ├──► [Sparkplug] 快速编译为机器码
+  │
+  ├──► [Maglev] 中层优化编译（SSA + CFG）
+  │
+  └──► [TurboFan] 深度优化编译（Turboshaft）
+          │
+          ▼
+      高度优化机器码
+          │
+    [去优化] ◄── 假设失败时回退
+                </div>
+                
+                <h3>关键技术点</h3>
+                <table>
+                    <tr>
+                        <th>技术</th>
+                        <th>解决的问题</th>
+                        <th>效果</th>
+                    </tr>
+                    <tr>
+                        <td><strong>隐藏类</strong></td>
+                        <td>动态对象的属性访问效率</td>
+                        <td>从哈希查找变为直接内存访问</td>
+                    </tr>
+                    <tr>
+                        <td><strong>内联缓存</strong></td>
+                        <td>动态类型的属性访问优化</td>
+                        <td>缓存常见类型，快速路径直接访问</td>
+                    </tr>
+                    <tr>
+                        <td><strong>分代 GC</strong></td>
+                        <td>内存自动管理</td>
+                        <td>年轻代频繁回收，老年代偶尔回收</td>
+                    </tr>
+                    <tr>
+                        <td><strong>指针压缩</strong></td>
+                        <td>64 位系统指针内存占用</td>
+                        <td>节省 50% 的指针内存</td>
+                    </tr>
+                    <tr>
+                        <td><strong>四级编译</strong></td>
+                        <td>平衡启动速度和执行效率</td>
+                        <td>冷代码解释执行，热代码优化编译</td>
+                    </tr>
+                </table>
+                
+                <h3>给初级程序员的建议</h3>
+                <ol>
+                    <li><strong>不要急于深入源码</strong>：先理解概念和架构，再逐步阅读代码</li>
+                    <li><strong>多写实验代码</strong>：用 d8 运行 JavaScript，观察 V8 的行为</li>
+                    <li><strong>关注性能模式</strong>：理解隐藏类、IC、数组类型等概念，写出更高效的代码</li>
+                    <li><strong>持续学习</strong>：V8 是一个活跃的项目，每年都会有重大更新</li>
+                </ol>
+                
+                <blockquote>
+                    <strong>文档版本</strong>：基于 V8 主分支（2024-2025）<br>
+                    <strong>主要更新</strong>：补充了 Maglev 编译器、Turboshaft IR、Orinoco GC 的最新进展<br>
+                    <strong>反馈建议</strong>：如果发现文档中的错误或过时信息，欢迎提出修改建议
+                </blockquote>
+            </section>
+        </div>
+    </div>
+    
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('active');
+        }
+        
+        // 平滑滚动到锚点
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                    
+                    // 在移动设备上点击后关闭侧边栏
+                    if (window.innerWidth <= 768) {
+                        document.getElementById('sidebar').classList.remove('active');
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

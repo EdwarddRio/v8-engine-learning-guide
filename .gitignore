@@ -1,0 +1,17 @@
+# IDE
+.qoder/
+.trae/
+
+# OS
+Thumbs.db
+
+# Logs
+logs
+*.log
+
+# Dependencies
+node_modules/
+
+# Build outputs
+build/
+dist/
