@@ -261,6 +261,7 @@
             margin-bottom: 20px;
             font-size: 13px;
             line-height: 1.5;
+            white-space: pre;
         }
         
         @media (max-width: 768px) {
@@ -439,22 +440,19 @@ function add(a, b) {
                 <p>想象 V8 是一座四层大楼：</p>
                 
                 <div class="ascii-art">
-+---------------------------+
-|  第四层：JavaScript 标准库  |  &lt;- 提供 Array、String、Promise 等内置对象
-|  (src/builtins/, src/api/) |
-+---------------------------+
-|  第三层：执行引擎           |  &lt;- Ignition、Sparkplug、Maglev、TurboFan
-|  (src/interpreter/         |     四级编译流水线
-|   src/compiler/            |
-|   src/maglev/)             |
-+---------------------------+
-|  第二层：运行时系统         |  &lt;- 内存管理、垃圾回收、线程调度
-|  (src/heap/, src/base/     |
-|   src/runtime/)            |
-+---------------------------+
-|  第一层：平台抽象层         |  &lt;- 与操作系统交互（内存分配、线程创建）
-|  (src/base/platform/)      |
-+---------------------------+
++----------------------------+   &lt;- 提供 Array、String、Promise 等内置对象
+|  第四层：JavaScript 标准库  |      (src/builtins/, src/api/)
++----------------------------+
+|  第三层：执行引擎           |   &lt;- Ignition、Sparkplug、Maglev、TurboFan
+|                            |      四级编译流水线
+|                            |      (src/interpreter/, src/compiler/, src/maglev/)
++----------------------------+
+|  第二层：运行时系统         |   &lt;- 内存管理、垃圾回收、线程调度
+|                            |      (src/heap/, src/base/, src/runtime/)
++----------------------------+
+|  第一层：平台抽象层         |   &lt;- 与操作系统交互（内存分配、线程创建）
+|                            |      (src/base/platform/)
++----------------------------+
                 </div>
                 
                 <p><strong>为什么要分层？</strong> 就像公司有不同的部门，每个部门负责不同的工作。分层让 V8 的代码更清晰，也更容易维护和优化。</p>
@@ -499,22 +497,22 @@ v8::Isolate* isolate = v8::Isolate::New(params);
                 <p>V8 的源码仓库就像一个大图书馆，不同的书架（目录）放不同类型的书（代码）。</p>
                 
                 <div class="ascii-art">
-v8/                          &lt;- 图书馆大门
-├── src/                     &lt;- 核心藏书区（最重要的源代码）
-│   ├── interpreter/         &lt;- Ignition 解释器
-│   ├── compiler/            &lt;- TurboFan 优化编译器
-│   ├── maglev/              &lt;- Maglev 中间层编译器（2023年新增）
-│   ├── heap/                &lt;- 堆管理和垃圾回收
-│   ├── objects/             &lt;- JavaScript 对象的 C++ 表示
-│   ├── parsing/             &lt;- 词法分析和语法分析（Parser）
-│   ├── runtime/             &lt;- 运行时内置函数
-│   ├── builtins/            &lt;- 内置 JavaScript 函数的实现
-│   ├── base/                &lt;- 基础工具类和平台抽象
-│   └── api/                 &lt;- 对外暴露的 C++ API
-├── include/                 &lt;- 对外公开的头文件（供 Chrome/Node.js 使用）
-├── test/                    &lt;- 测试用例
-├── third_party/             &lt;- 第三方依赖库
-└── tools/                   &lt;- 构建和调试工具
+v8/                                 &lt;- 图书馆大门
+├── src/                            &lt;- 核心藏书区（最重要的源代码）
+│   ├── interpreter/                &lt;- Ignition 解释器
+│   ├── compiler/                   &lt;- TurboFan 优化编译器
+│   ├── maglev/                     &lt;- Maglev 中间层编译器（2023年新增）
+│   ├── heap/                       &lt;- 堆管理和垃圾回收
+│   ├── objects/                    &lt;- JavaScript 对象的 C++ 表示
+│   ├── parsing/                    &lt;- 词法分析和语法分析（Parser）
+│   ├── runtime/                    &lt;- 运行时内置函数
+│   ├── builtins/                   &lt;- 内置 JavaScript 函数的实现
+│   ├── base/                       &lt;- 基础工具类和平台抽象
+│   └── api/                        &lt;- 对外暴露的 C++ API
+├── include/                        &lt;- 对外公开的头文件（供 Chrome/Node.js 使用）
+├── test/                           &lt;- 测试用例
+├── third_party/                    &lt;- 第三方依赖库
+└── tools/                          &lt;- 构建和调试工具
                 </div>
                 
                 <h3 id="core-modules">核心模块详解</h3>
